@@ -7,14 +7,23 @@ final class V2exAPITests: XCTestCase {
   func testAPI() async throws {
     let v2ex = V2exAPI(accessToken: "")
 
-    let nodes = try await v2ex.nodesList()
+    let nodes = try? await v2ex.nodesList()
     XCTAssertNotNil(nodes)
 
     let latest = try await v2ex.latestTopics()
     XCTAssertNotNil(latest)
 
-    let topics = try await v2ex.topics(nodeName: "swift")
-    XCTAssertNotNil(topics)
+    let hot = try await v2ex.hotTopics()
+    XCTAssertNotNil(hot)
+
+    let nodeDetail = try await v2ex.nodesShow(name: "swift")
+    XCTAssertNotNil(nodeDetail)
+    
+    let member = try await v2ex.memberShow(username: "isaced")
+    XCTAssertNotNil(member)
+
+//    let topics = try await v2ex.topics(nodeName: "swift")
+//    XCTAssertNotNil(topics)
   }
 
 }

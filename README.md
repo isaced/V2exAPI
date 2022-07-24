@@ -13,8 +13,8 @@ V2ex API 的 Swift 封装，支持 iOS/macOS。
 |------|-------------------------|-----|
 | 最热主题 | /api/topics/hot.json    | &#9745; |
 | 最新主题 | /api/topics/latest.json | &#9745; |
-| 节点信息 | /api/nodes/show.json    | &#9744; |
-| 用户主页 | /api/members/show.json  | &#9744; |
+| 节点信息 | /api/nodes/show.json    | &#9745; |
+| 用户主页 | /api/members/show.json  | &#9745; |
 
 ### V2
 
