@@ -1,11 +1,20 @@
 import XCTest
+
 @testable import V2exAPI
 
 final class V2exAPITests: XCTestCase {
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
-        XCTAssertEqual(V2exAPI().text, "Hello, World!")
-    }
+
+  func testAPI() async throws {
+    let v2ex = V2exAPI(accessToken: "")
+
+    let nodes = try await v2ex.nodesList()
+    XCTAssertNotNil(nodes)
+
+    let latest = try await v2ex.latestTopics()
+    XCTAssertNotNil(latest)
+
+    let topics = try await v2ex.topics(nodeName: "swift")
+    XCTAssertNotNil(topics)
+  }
+
 }
