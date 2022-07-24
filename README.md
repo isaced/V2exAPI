@@ -1,6 +1,9 @@
-# V2exAPI
+# V2exAPI 
+[![Swift](https://img.shields.io/badge/swift-F54A2A?style=for-the-badge&logo=swift&logoColor=white)](https://github.com/isaced/V2exAPI)
+[![iOS](https://img.shields.io/badge/iOS-000000?style=for-the-badge&logo=ios&logoColor=white)](https://github.com/isaced/V2exAPI)
+[![macOS](https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=macos&logoColor=F0F0F0)](https://github.com/isaced/V2exAPI)
 
-V2ex API 的 Swift 封装，支持 iOS/macOS
+V2ex API 的 Swift 封装，支持 iOS/macOS。
 
 ## API 支持范围
 
@@ -8,17 +11,29 @@ V2ex API 的 Swift 封装，支持 iOS/macOS
 
 | 接口   | 路径                   | 进度  |
 |------|-------------------------|-----|
-| 最热主题 | /api/topics/hot.json    | [x] |
-| 最新主题 | /api/topics/latest.json | [x] |
-| 节点信息 | /api/nodes/show.json    | [ ] |
-| 用户主页 | /api/members/show.json  | [ ] |
+| 最热主题 | /api/topics/hot.json    | &#9745; |
+| 最新主题 | /api/topics/latest.json | &#9745; |
+| 节点信息 | /api/nodes/show.json    | &#9744; |
+| 用户主页 | /api/members/show.json  | &#9744; |
 
+### V2
+
+| 接口            | 路径                           | 进度 |
+|----------------------|--------------------------------|---------|
+| 获取最新的提醒       | notifications                  | &#9744; |
+| 删除指定的提醒       | notifications/:notification_id | &#9744; |
+| 获取自己的 Profile   | member                         | &#9744; |
+| 查看当前使用的令牌   | token                          | &#9744; |
+| 获取指定节点         | nodes/:node_name               | &#9744; |
+| 获取指定节点下的主题 | nodes/:node_name/topics        | &#9745; |
+| 获取指定主题         | topics/:topic_id               | &#9744; |
+| 获取指定主题下的回复 | topics/:topic_id/replies       | &#9744; |
 
 ## 安装
 
 通过 [Swift Package Manager](https://swift.org/package-manager/) 安装 V2exAPI 到你的项目，在 `Package.swift` 中添加：
 
-```
+```swift
 .package(name: "V2exAPI", url: "git@github.com:isaced/V2exAPI.git", .upToNextMinor(from: "0.0.1")),
 ```
 
