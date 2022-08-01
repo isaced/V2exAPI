@@ -165,4 +165,23 @@ public struct V2exAPI {
     )
     return data
   }
+  
+  /**
+   获取指定主题下的回复
+   
+   - parameter  topicId: 主题ID
+   - parameter  page: 分页页码，默认为 1
+   */
+  public func replies(topicId: Int, page: Int = 1) async throws -> V2Response<[V2Comment]?>? {
+    let path = "topics/\(topicId)/replies"
+    let (data, _) = try await request(
+      url: endpointV2 + path,
+      args: [
+        "p": String(page)
+      ],
+      decodeClass: V2Response<[V2Comment]?>.self
+    )
+    return data
+  }
+  
 }
