@@ -5,6 +5,13 @@
 
 V2ex API 的 Swift 封装，支持 iOS/macOS。
 
+## 特性
+
+- [x] SPM(Swift Package Manager) 支持
+- [x] Swift async/await 异步 API
+- [x] V2ex API V1 支持度 100%
+- [ ] V2ex API V2 支持度 25%
+
 ## API 支持范围
 
 ### V1
@@ -27,7 +34,7 @@ V2ex API 的 Swift 封装，支持 iOS/macOS。
 | 获取指定节点         | nodes/:node_name               | &#9744; |
 | 获取指定节点下的主题 | nodes/:node_name/topics        | &#9745; |
 | 获取指定主题         | topics/:topic_id               | &#9744; |
-| 获取指定主题下的回复 | topics/:topic_id/replies       | &#9744; |
+| 获取指定主题下的回复 | topics/:topic_id/replies       | &#9745; |
 
 ## 安装
 
@@ -71,3 +78,11 @@ X-Rate-Limit-Remaining: 116
 对于能够被 CDN 缓存的 API 请求，只有第一次请求时，才会消耗 Rate Limit 配额。
 
 > Personal Access Token 申请参考：https://v2ex.com/help/personal-access-token
+
+## 使用示例
+
+- [V2exOS](https://github.com/isaced/V2exOS) - 一个用 SwiftUI 编写的 V2ex macOS 客户端
+
+## License
+
+V2exAPI 在 MIT 许可下发布的，有关详细信息，请参阅 [LICENSE](/LICENSE)
