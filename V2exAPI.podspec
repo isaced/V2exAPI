@@ -1,7 +1,7 @@
 Pod::Spec.new do |spec|
 
   spec.name         = "V2exAPI"
-  spec.version      = "0.0.1"
+  spec.version      = "0.0.2"
   spec.summary      = "V2ex API 的 Swift 封装，支持 iOS/macOS"
 
   spec.description  = <<-DESC
