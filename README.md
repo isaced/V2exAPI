@@ -10,7 +10,7 @@ V2ex API 的 Swift 封装，支持 iOS/macOS。
 - [x] SPM(Swift Package Manager) 支持
 - [x] Swift async/await 异步 API
 - [x] V2ex API V1 支持度 100%
-- [ ] V2ex API V2 支持度 25%
+- [ ] V2ex API V2 支持度 50%
 
 ## API 支持范围
 
@@ -31,9 +31,9 @@ V2ex API 的 Swift 封装，支持 iOS/macOS。
 | 删除指定的提醒       | notifications/:notification_id | &#9744; |
 | 获取自己的 Profile   | member                         | &#9744; |
 | 查看当前使用的令牌   | token                          | &#9744; |
-| 获取指定节点         | nodes/:node_name               | &#9744; |
+| 获取指定节点         | nodes/:node_name               | &#9745; |
 | 获取指定节点下的主题 | nodes/:node_name/topics        | &#9745; |
-| 获取指定主题         | topics/:topic_id               | &#9744; |
+| 获取指定主题         | topics/:topic_id               | &#9745; |
 | 获取指定主题下的回复 | topics/:topic_id/replies       | &#9745; |
 
 ## 安装
