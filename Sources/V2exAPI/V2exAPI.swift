@@ -198,4 +198,17 @@ public struct V2exAPI {
     return data
   }
   
+  /**
+   获取指定节点
+   
+   - parameter  nodeName: 节点名
+   */
+  public func getNode(nodeName: String) async throws -> V2Response<V2Node?>? {
+    let path = "nodes/\(nodeName)"
+    let (data, _) = try await request(
+      url: endpointV2 + path,
+      decodeClass: V2Response<V2Node?>.self
+    )
+    return data
+  }
 }

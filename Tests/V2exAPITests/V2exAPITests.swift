@@ -27,6 +27,9 @@ final class V2exAPITests: XCTestCase {
     
     let topic = try await v2ex.topic(topicId: 870607)
     XCTAssertNotNil(topic)
+    
+    let node = try await v2ex.getNode(nodeName: "swift")
+    XCTAssertNotNil(node)
   }
   
 }
