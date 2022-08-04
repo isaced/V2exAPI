@@ -22,4 +22,6 @@ Pod::Spec.new do |spec|
   spec.source       = { :git => "https://github.com/isaced/V2exAPI.git", :tag => "#{spec.version}" }
 
   spec.source_files  = ["Sources/**/*.swift"]
+
+  s.swift_versions = ['5.0']
 end
