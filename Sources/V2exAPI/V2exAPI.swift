@@ -184,4 +184,18 @@ public struct V2exAPI {
     return data
   }
   
+  /**
+   获取指定主题
+   
+   - parameter  topicId: 主题ID
+   */
+  public func topic(topicId: Int) async throws -> V2Response<V2Topic?>? {
+    let path = "topics/\(topicId)"
+    let (data, _) = try await request(
+      url: endpointV2 + path,
+      decodeClass: V2Response<V2Topic?>.self
+    )
+    return data
+  }
+  
 }
