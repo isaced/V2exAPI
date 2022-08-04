@@ -16,7 +16,7 @@ Pod::Spec.new do |spec|
 
   spec.ios.deployment_target = "15.0"
   spec.osx.deployment_target = "12.0"
-  spec.watchos.deployment_target = "6.0"
+  spec.watchos.deployment_target = "8.0"
   spec.tvos.deployment_target = "15.0"
 
   spec.source       = { :git => "https://github.com/isaced/V2exAPI.git", :tag => "#{spec.version}" }
