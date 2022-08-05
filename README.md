@@ -1,5 +1,7 @@
-# V2exAPI 
+# V2exAPI
 [![Swift](https://img.shields.io/badge/swift-F54A2A?style=for-the-badge&logo=swift&logoColor=white)](https://github.com/isaced/V2exAPI)
+[![CocoaPods](https://img.shields.io/cocoapods/v/V2exAPI.svg?style=for-the-badge)](https://cocoapods.org/pods/V2exAPI)
+[![Carthage](https://img.shields.io/badge/-Carthage-5C5543?style=for-the-badge)](https://github.com/Carthage/Carthage)
 [![iOS](https://img.shields.io/badge/iOS-000000?style=for-the-badge&logo=ios&logoColor=white)](https://github.com/isaced/V2exAPI)
 [![macOS](https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=macos&logoColor=F0F0F0)](https://github.com/isaced/V2exAPI)
 
