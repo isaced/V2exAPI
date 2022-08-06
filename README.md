@@ -43,7 +43,7 @@ V2ex API 的 Swift 封装，支持 iOS/macOS。
 通过 [Swift Package Manager](https://swift.org/package-manager/) 安装 V2exAPI 到你的项目，在 `Package.swift` 中添加：
 
 ```swift
-.package(name: "V2exAPI", url: "git@github.com:isaced/V2exAPI.git", .upToNextMinor(from: "0.0.1")),
+.package(name: "V2exAPI", url: "git@github.com:isaced/V2exAPI.git", .upToNextMinor(from: "1.0.0")),
 ```
 
 ## 使用
