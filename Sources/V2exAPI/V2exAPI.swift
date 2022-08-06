@@ -20,15 +20,15 @@ public struct V2exAPI {
   /**
    HTTP 请求
    */
-  private func request<T>(httpMethod: String = "GET", url: String, args: [String: String]? = nil, decodeClass: T.Type) async throws -> (
+  private func request<T>(httpMethod: String = "GET", url: String, args: [String: Any]? = nil, decodeClass: T.Type) async throws -> (
     T?, URLResponse?
   ) where T : Decodable {
     let urlComponents = NSURLComponents(string: url)!
     
-    if args != nil {
+    if httpMethod != "POST" && args != nil {
       urlComponents.queryItems =
       args?.map({ (k, v) in
-        return NSURLQueryItem(name: k, value: v)
+        return NSURLQueryItem(name: k, value: "\(v)")
       }) as [URLQueryItem]?
     }
     
@@ -43,6 +43,11 @@ public struct V2exAPI {
     if let accessToken = accessToken {
       request.setValue("Bearer " + accessToken, forHTTPHeaderField: "Authorization")
     }
+    
+    if httpMethod == "POST" && args != nil{
+      request.httpBody = try? JSONSerialization.data(withJSONObject: args as Any)
+    }
+    
     let (data, response) = try await URLSession.shared.data(for: request)
     
     let decoder = JSONDecoder()
@@ -208,6 +213,88 @@ public struct V2exAPI {
     let (data, _) = try await request(
       url: endpointV2 + path,
       decodeClass: V2Response<V2Node?>.self
+    )
+    return data
+  }
+  
+  /**
+   获取最新的提醒
+   
+   - parameter  page: 分页页码，默认为 1
+   */
+  public func notifications(page: Int = 1) async throws -> V2Response<[V2Notification]?>? {
+    let path = "notifications"
+    let (data, _) = try await request(
+      url: endpointV2 + path,
+      args: [
+        "p": String(page)
+      ],
+      decodeClass: V2Response<[V2Notification]?>.self
+    )
+    return data
+  }
+  
+  /**
+   获取最新的提醒
+   
+   - parameter  notification_id: 提醒ID
+   */
+  public func deleteNotification(notificationId: Int) async throws -> V2Response<Data>? {
+    let path = "notifications/\(notificationId)"
+    let (data, _) = try await request(
+      httpMethod: "DELETE",
+      url: endpointV2 + path,
+      decodeClass: V2Response<Data>.self
+    )
+    return data
+  }
+  
+  
+  /**
+   获取自己的 Profile
+   */
+  public func member() async throws -> V2Response<V2Member>? {
+    let path = "member"
+    let (data, _) = try await request(
+      url: endpointV2 + path,
+      decodeClass: V2Response<V2Member>.self
+    )
+    return data
+  }
+  
+  
+  /**
+   查看当前使用的令牌
+   */
+  public func token() async throws -> V2Response<V2Token>? {
+    let path = "token"
+    let (data, _) = try await request(
+      url: endpointV2 + path,
+      decodeClass: V2Response<V2Token>.self
+    )
+    return data
+  }
+  
+  /**
+   创建新的令牌
+   
+   你可以在系统中最多创建 10 个 Personal Access Token。
+   
+   - parameter  scope: 可选 everything 或者 regular，如果是 regular 类型的 Token 将不能用于进一步创建新的 token
+   - parameter  expiration: 可支持的值：2592000，5184000，7776000 或者 15552000，即 30 天，60 天，90 天或者 180 天的秒数
+   */
+  public func createToken(expiration: Int, scope: String? = nil) async throws -> V2Response<V2Token>? {
+    let path = "token"
+    var args:[String: Any] = ["expiration": expiration]
+    if let scope = scope {
+      args["scope"] = scope
+    }
+    
+    let (data, _) = try await request(
+      httpMethod: "POST",
+      url: endpointV2 + path,
+      args: args,
+      decodeClass: V2Response<V2Token>.self
     )
     return data
   }

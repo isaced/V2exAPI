@@ -30,6 +30,16 @@ final class V2exAPITests: XCTestCase {
     
     let node = try await v2ex.getNode(nodeName: "swift")
     XCTAssertNotNil(node)
+    
+    let notifications = try await v2ex.notifications()
+    XCTAssertNotNil(notifications)
+    
+    let delNotifications = try await v2ex.deleteNotification(notificationId: 5846288)
+    XCTAssertNotNil(delNotifications)
+    
+    let memberMe = try await v2ex.member()
+    XCTAssertNotNil(memberMe)
+
   }
   
 }
