@@ -12,7 +12,7 @@ V2ex API 的 Swift 封装，支持 iOS/macOS。
 - [x] SPM(Swift Package Manager) 支持
 - [x] Swift async/await 异步 API
 - [x] V2ex API V1 支持度 100%
-- [ ] V2ex API V2 支持度 50%
+- [x] V2ex API V2 支持度 100%
 
 ## API 支持范围
 
@@ -29,10 +29,10 @@ V2ex API 的 Swift 封装，支持 iOS/macOS。
 
 | 接口            | 路径                           | 进度 |
 |----------------------|--------------------------------|---------|
-| 获取最新的提醒       | notifications                  | &#9744; |
-| 删除指定的提醒       | notifications/:notification_id | &#9744; |
-| 获取自己的 Profile   | member                         | &#9744; |
-| 查看当前使用的令牌   | token                          | &#9744; |
+| 获取最新的提醒       | notifications                  | &#9745; |
+| 删除指定的提醒       | notifications/:notification_id | &#9745; |
+| 获取自己的 Profile   | member                         | &#9745; |
+| 查看当前使用的令牌   | token                          | &#9745; |
 | 获取指定节点         | nodes/:node_name               | &#9745; |
 | 获取指定节点下的主题 | nodes/:node_name/topics        | &#9745; |
 | 获取指定主题         | topics/:topic_id               | &#9745; |
@@ -59,7 +59,10 @@ let nodes = try await v2ex.nodesList()
 let latest = try await v2ex.latestTopics()
 
 // 获取指定节点下的主题列表
-let topics = try await v2ex.topics(nodeName: "swift")
+let topics = try await v2ex.topics(nodeName: "swift", page: 1)
+
+// 获取指定主题下的回复
+let replies = try await v2ex.replies(topicId: 870607, page: 1)
 ```
 
 ## API 参考
