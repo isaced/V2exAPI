@@ -7,7 +7,9 @@
 
 [中文](/README.md)｜English
 
-A V2ex API wrapper for iOS/macOS, built with Swift.
+A [V2ex](https://v2ex.com/) API wrapper for iOS/macOS, built with Swift.
+
+> V2EX is a community of start-ups, designers, developers and creative people.
 
 ## Features
 

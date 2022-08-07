@@ -7,7 +7,7 @@
 
 中文｜[English](/README_EN.md)
 
-V2ex API 的 Swift 封装，支持 iOS/macOS。
+一个 [V2ex](https://v2ex.com/) API 的 Swift 封装，支持 iOS/macOS，支持 SPM 引入和 async/await 方式调用。
 
 ## 特性
 
