@@ -5,6 +5,8 @@
 [![iOS](https://img.shields.io/badge/iOS-000000?style=for-the-badge&logo=ios&logoColor=white)](https://github.com/isaced/V2exAPI)
 [![macOS](https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=macos&logoColor=F0F0F0)](https://github.com/isaced/V2exAPI)
 
+中文｜[English](/README_EN.md)
+
 V2ex API 的 Swift 封装，支持 iOS/macOS。
 
 ## 特性
