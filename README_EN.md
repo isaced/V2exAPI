@@ -17,6 +17,7 @@ A [V2ex](https://v2ex.com/) API wrapper for iOS/macOS, built with Swift.
 - [x] Swift async/await Support
 - [x] V2ex API V1 100%
 - [x] V2ex API V2 100%
+- [x] Zero dependency
 
 ## API Support
 

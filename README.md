@@ -15,6 +15,7 @@
 - [x] Swift async/await 异步 API
 - [x] V2ex API V1 支持度 100%
 - [x] V2ex API V2 支持度 100%
+- [x] Zero dependency 零三方依赖
 
 ## API 支持范围
 
