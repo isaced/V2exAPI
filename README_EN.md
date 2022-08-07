@@ -5,6 +5,8 @@
 [![iOS](https://img.shields.io/badge/iOS-000000?style=for-the-badge&logo=ios&logoColor=white)](https://github.com/isaced/V2exAPI)
 [![macOS](https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=macos&logoColor=F0F0F0)](https://github.com/isaced/V2exAPI)
 
+[中文](/README.md)｜English
+
 A V2ex API wrapper for iOS/macOS, built with Swift.
 
 ## Features
