@@ -88,6 +88,10 @@ X-Rate-Limit-Remaining: 116
 
 - [V2exOS](https://github.com/isaced/V2exOS) - 一个用 SwiftUI 编写的 V2ex macOS 客户端
 
+![screenshot](https://user-images.githubusercontent.com/2088605/182183782-79aa8524-dea4-40d3-87a3-6b542678f568.png#gh-dark-mode-only)
+![screenshot](https://user-images.githubusercontent.com/2088605/182184352-52019bd0-da89-4703-9d83-2b85aa10617e.png##gh-light-mode-only)
+
+
 ## License
 
 V2exAPI 在 MIT 许可下发布的，有关详细信息，请参阅 [LICENSE](/LICENSE)
