@@ -43,15 +43,31 @@
 
 ## 安装
 
+### Swift Package Manager
+
 通过 [Swift Package Manager](https://swift.org/package-manager/) 安装 V2exAPI 到你的项目，在 `Package.swift` 中添加：
 
 ```swift
 .package(name: "V2exAPI", url: "git@github.com:isaced/V2exAPI.git", .upToNextMinor(from: "1.0.0")),
 ```
 
+在 Xcode 中：
+- 菜单 File > Swift Packages > Add Package Dependency
+- 搜索 https://github.com/isaced/V2exAPI.git
+- 选择 "Up to Next Major" 版本 "1.0.0"
+
+
+### CocoaPods
+
+```ruby
+pod 'V2exAPI', '~> 1.0'
+```
+
 ## 使用
 
 ```swift
+import V2exAPI
+
 // 初始化 V2eXAPI 对象 
 let v2ex = V2exAPI(accessToken: "XXXXX-XXXX-XXXX-XXXX-XXXXXXXXX")
 
