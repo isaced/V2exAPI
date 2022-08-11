@@ -10,7 +10,7 @@ import Foundation
 /// 会员
 public struct V2Member: Decodable {
 
-  public var id: Int
+  public var id: Int?
   public let username: String?
   public let url: String?
   public let website: String?
