@@ -9,7 +9,7 @@ import Foundation
 
 /// 话题
 public struct V2Topic: Identifiable, Decodable {
-
+  
   public let id: Int
   public let node: V2Node?
   public let member: V2Member?
@@ -23,11 +23,21 @@ public struct V2Topic: Identifiable, Decodable {
   public let contentRendered: String?
   public let lastModified: Int?
   public let replies: Int?
-
+  
   public init(
-    id: Int, node: V2Node? = nil, member: V2Member? = nil, lastReplyBy: String?, lastTouched: Int?,
-    title: String?, url: String?, created: Int?, deleted: Int?, content: String?,
-    contentRendered: String?, lastModified: Int?, replies: Int?
+    id: Int,
+    node: V2Node? = nil,
+    member: V2Member? = nil,
+    lastReplyBy: String? = nil,
+    lastTouched: Int? = nil,
+    title: String? = nil,
+    url: String? = nil,
+    created: Int? = nil,
+    deleted: Int? = nil,
+    content: String? = nil,
+    contentRendered: String? = nil,
+    lastModified: Int? = nil,
+    replies: Int? = nil
   ) {
     self.id = id
     self.node = node
@@ -43,7 +53,7 @@ public struct V2Topic: Identifiable, Decodable {
     self.lastModified = lastModified
     self.replies = replies
   }
-
+  
   enum CodingKeys: String, CodingKey {
     case node, member
     case lastReplyBy = "last_reply_by"
