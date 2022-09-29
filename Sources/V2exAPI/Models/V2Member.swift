@@ -8,49 +8,26 @@
 import Foundation
 
 /// 会员
-public struct V2Member: Decodable {
-
+public struct V2Member : Decodable {
+  
   public var id: Int?
-  public let username: String?
-  public let url: String?
-  public let website: String?
-  public let twitter: String?
-  public let psn: String?
-  public let github: String?
-  public let btc: String?
-  public let location: String?
-  public let tagline: String?
-  public let bio: String?
-  public let avatarMini: String?
-  public let avatarNormal: String?
-  public let avatarLarge: String?
-  public let created: Int?
-  public let lastModified: Int?
-
-  public init(
-    id: Int, username: String?, url: String?, website: String?, twitter: String?, psn: String?,
-    github: String?, btc: String?, location: String?, tagline: String?, bio: String?,
-    avatarMini: String?, avatarNormal: String?, avatarLarge: String?, created: Int?,
-    lastModified: Int?
-  ) {
-    self.id = id
-    self.username = username
-    self.url = url
-    self.website = website
-    self.twitter = twitter
-    self.psn = psn
-    self.github = github
-    self.btc = btc
-    self.location = location
-    self.tagline = tagline
-    self.bio = bio
-    self.avatarMini = avatarMini
-    self.avatarNormal = avatarNormal
-    self.avatarLarge = avatarLarge
-    self.created = created
-    self.lastModified = lastModified
-  }
-
+  public var username: String?
+  public var url: String?
+  public var website: String?
+  public var twitter: String?
+  public var psn: String?
+  public var github: String?
+  public var btc: String?
+  public var location: String?
+  public var tagline: String?
+  public var bio: String?
+  public var avatar: String?
+  public var avatarMini: String?
+  public var avatarNormal: String?
+  public var avatarLarge: String?
+  public var created: Int?
+  public var lastModified: Int?
+  
   enum CodingKeys: String, CodingKey {
     case id, username, url, website, twitter, psn, github, btc, location, tagline, bio, created
     case avatarMini = "avatar_mini"
