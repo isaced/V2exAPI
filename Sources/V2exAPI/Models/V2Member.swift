@@ -28,8 +28,28 @@ public struct V2Member : Decodable {
   public var created: Int?
   public var lastModified: Int?
   
+  public init(id: Int? = nil, username: String? = nil, url: String? = nil, website: String? = nil, twitter: String? = nil, psn: String? = nil, github: String? = nil, btc: String? = nil, location: String? = nil, tagline: String? = nil, bio: String? = nil, avatar: String? = nil, avatarMini: String? = nil, avatarNormal: String? = nil, avatarLarge: String? = nil, created: Int? = nil, lastModified: Int? = nil) {
+    self.id = id
+    self.username = username
+    self.url = url
+    self.website = website
+    self.twitter = twitter
+    self.psn = psn
+    self.github = github
+    self.btc = btc
+    self.location = location
+    self.tagline = tagline
+    self.bio = bio
+    self.avatar = avatar
+    self.avatarMini = avatarMini
+    self.avatarNormal = avatarNormal
+    self.avatarLarge = avatarLarge
+    self.created = created
+    self.lastModified = lastModified
+  }
+  
   enum CodingKeys: String, CodingKey {
-    case id, username, url, website, twitter, psn, github, btc, location, tagline, bio, created
+    case id, username, url, website, twitter, psn, github, btc, location, tagline, bio, created, avatar
     case avatarMini = "avatar_mini"
     case avatarNormal = "avatar_normal"
     case avatarLarge = "avatar_large"
