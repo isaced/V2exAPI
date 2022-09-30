@@ -9,6 +9,7 @@ public struct V2exAPI {
    生成参考： https://v2ex.com/help/personal-access-token
    */
   public var accessToken: String?
+  public var session = URLSession.shared
   
   private let endpointV1 = "https://v2ex.com/api/"
   private let endpointV2 = "https://www.v2ex.com/api/v2/"
@@ -48,7 +49,7 @@ public struct V2exAPI {
       request.httpBody = try? JSONSerialization.data(withJSONObject: args as Any)
     }
     
-    let (data, response) = try await URLSession.shared.data(for: request)
+    let (data, response) = try await session.data(for: request)
     
     let decoder = JSONDecoder()
     
