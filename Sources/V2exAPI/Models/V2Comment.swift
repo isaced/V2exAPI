@@ -10,7 +10,8 @@ import Foundation
 public struct V2Comment: Identifiable, Decodable {
     
     public let id: Int
-    public let content, contentRendered: String
+    public let content: String
+    public let contentRendered: String
     public let created: Int
     public let member: V2Member
     

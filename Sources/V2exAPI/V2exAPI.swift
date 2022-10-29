@@ -156,6 +156,23 @@ public struct V2exAPI {
         return data;
     }
     
+    /**
+     获取指定主题下的回复列表
+     
+     - parameter  topicId: 主题ID
+     */
+    public func repliesAll(topicId: Int) async throws -> [V2Comment]? {
+        let path = "replies/show.json"
+        let (data, _) = try await request(
+            url: endpointV1 + path,
+            args: [
+                "topic_id": topicId
+            ],
+            decodeClass: [V2Comment].self
+        )
+        return data
+    }
+    
     // =========== V2 ===========
     
     /**

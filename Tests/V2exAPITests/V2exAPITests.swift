@@ -5,7 +5,7 @@ import XCTest
 final class V2exAPITests: XCTestCase {
     
     func testAPI() async throws {
-        let v2ex = V2exAPI(accessToken: "")
+        let v2ex = V2exAPI()
         
         let nodes = try? await v2ex.nodesList()
         XCTAssertNotNil(nodes)
@@ -22,24 +22,28 @@ final class V2exAPITests: XCTestCase {
         let member = try await v2ex.memberShow(username: "isaced")
         XCTAssertNotNil(member)
         
-        let topics = try await v2ex.topics(nodeName: "swift")
-        XCTAssertNotNil(topics)
+        let repliesAll = try await v2ex.repliesAll(topicId: 883252)
+        XCTAssertNotNil(repliesAll)
         
-        let topic = try await v2ex.topic(topicId: 870607)
-        XCTAssertNotNil(topic)
+        // --- V2 ---
         
-        let node = try await v2ex.getNode(nodeName: "swift")
-        XCTAssertNotNil(node)
-        
-        let notifications = try await v2ex.notifications()
-        XCTAssertNotNil(notifications)
-        
-        let delNotifications = try await v2ex.deleteNotification(notificationId: 5846288)
-        XCTAssertNotNil(delNotifications)
-        
-        let memberMe = try await v2ex.member()
-        XCTAssertNotNil(memberMe)
-        
+        //        let topics = try await v2ex.topics(nodeName: "swift")
+        //        XCTAssertNotNil(topics)
+        //
+        //        let topic = try await v2ex.topic(topicId: 870607)
+        //        XCTAssertNotNil(topic)
+        //
+        //        let node = try await v2ex.getNode(nodeName: "swift")
+        //        XCTAssertNotNil(node)
+        //
+        //        let notifications = try await v2ex.notifications()
+        //        XCTAssertNotNil(notifications)
+        //
+        //        let delNotifications = try await v2ex.deleteNotification(notificationId: 5846288)
+        //        XCTAssertNotNil(delNotifications)
+        //
+        //        let memberMe = try await v2ex.member()
+        //        XCTAssertNotNil(memberMe)
     }
     
 }
