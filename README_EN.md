@@ -27,8 +27,10 @@ A [V2ex](https://v2ex.com/) API wrapper for iOS/macOS, built with Swift.
 |------|-------------------------|-----|
 | Hottest topic | /api/topics/hot.json    | &#9745; |
 | Latest Topics | /api/topics/latest.json | &#9745; |
-| Node list | /api/nodes/show.json    | &#9745; |
+| Node list | /api/nodes/list.json    | &#9745; |
+| Node Info | /api/nodes/show.json    | &#9745; |
 | Profile info | /api/members/show.json  | &#9745; |
+| Replies | /api/replies/show.json  | &#9745; |
 
 ### V2
 

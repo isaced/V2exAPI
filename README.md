@@ -25,8 +25,10 @@
 |------|-------------------------|-----|
 | 最热主题 | /api/topics/hot.json    | &#9745; |
 | 最新主题 | /api/topics/latest.json | &#9745; |
+| 节点列表 | /api/nodes/list.json    | &#9745; |
 | 节点信息 | /api/nodes/show.json    | &#9745; |
 | 用户主页 | /api/members/show.json  | &#9745; |
+| 回复列表 | /api/replies/show.json  | &#9745; |
 
 ### V2
 
