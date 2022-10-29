@@ -64,13 +64,17 @@ public struct V2exAPI {
   /**
    获取节点列表
    */
-  public func nodesList(fields: String? = nil) async throws -> [V2Node]? {
+    public func nodesList(fields: [String]? = nil, sortBy: String = "topics", reverse: String = "1") async throws -> [V2Node]? {
+    var fieldsList = ["id","name","title","topics","aliases"]
+    if let fields {
+        fieldsList = fields
+    }
     let (data, _) = try await request(
       url: endpointV1 + "nodes/list.json",
       args: [
-        "fields": fields ?? "id,name,title,topics,aliases",
-        "sort_by": "topics",
-        "reverse": "1",
+        "fields": fieldsList.joined(separator: ","),
+        "sort_by": sortBy,
+        "reverse": reverse,
       ],
       decodeClass: [V2Node].self
     )
