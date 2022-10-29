@@ -11,17 +11,17 @@ import Foundation
  通知
  */
 public struct V2Notification: Decodable, Identifiable {
-  public let id, memberID, forMemberID: Int?
-  public let text, payload, payloadRendered: String?
-  public let created: Int?
-  public let member: V2Member?
-  
-  enum CodingKeys: String, CodingKey {
-    case id
-    case memberID = "member_id"
-    case forMemberID = "for_member_id"
-    case text, payload
-    case payloadRendered = "payload_rendered"
-    case created, member
-  }
+    public let id, memberID, forMemberID: Int?
+    public let text, payload, payloadRendered: String?
+    public let created: Int?
+    public let member: V2Member?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case memberID = "member_id"
+        case forMemberID = "for_member_id"
+        case text, payload
+        case payloadRendered = "payload_rendered"
+        case created, member
+    }
 }
