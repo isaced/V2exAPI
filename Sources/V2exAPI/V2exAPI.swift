@@ -173,6 +173,23 @@ public struct V2exAPI {
         return data
     }
     
+    /**
+     获取节点下的主题列表
+     
+     - parameter  topicId: 主题ID
+     */
+    public func topics(nodeName: String) async throws -> [V2Topic]? {
+        let path = "topics/show.json"
+        let (data, _) = try await request(
+            url: endpointV1 + path,
+            args: [
+                "node_name": nodeName
+            ],
+            decodeClass: [V2Topic].self
+        )
+        return data
+    }
+    
     // =========== V2 ===========
     
     /**

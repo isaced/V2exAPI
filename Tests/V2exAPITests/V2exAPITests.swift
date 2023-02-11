@@ -25,6 +25,9 @@ final class V2exAPITests: XCTestCase {
         let repliesAll = try await v2ex.repliesAll(topicId: 883252)
         XCTAssertNotNil(repliesAll)
         
+        let topics = try await v2ex.topics(nodeName: "apple")
+        XCTAssertNotNil(topics)
+        
         // --- V2 ---
         
         //        let topics = try await v2ex.topics(nodeName: "swift")
