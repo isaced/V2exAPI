@@ -8,7 +8,7 @@
 import Foundation
 
 /// 节点
-public struct V2Node: Identifiable, Decodable {
+public struct V2Node: Identifiable, Decodable, Equatable {
     
     public let name: String
     public let title: String?

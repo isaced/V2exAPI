@@ -10,7 +10,7 @@ import Foundation
 /**
  通知
  */
-public struct V2Notification: Decodable, Identifiable {
+public struct V2Notification: Decodable, Identifiable, Equatable {
     public let id, memberID, forMemberID: Int?
     public let text, payload, payloadRendered: String?
     public let created: Int?

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct V2Comment: Identifiable, Decodable {
+public struct V2Comment: Identifiable, Decodable, Equatable {
     
     public let id: Int
     public let content: String
