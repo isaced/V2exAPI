@@ -8,7 +8,7 @@
 import Foundation
 
 /// 话题
-public struct V2Topic: Identifiable, Decodable, Equatable {
+public struct V2Topic: Identifiable, Decodable, Hashable {
     
     public let id: Int
     public let node: V2Node?

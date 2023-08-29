@@ -10,7 +10,7 @@ import Foundation
 /**
  Token
  */
-public struct V2Token: Decodable, Equatable {
+public struct V2Token: Decodable, Equatable, Hashable {
     public let token, scope: String?
     public let expiration, goodForDays, totalUsed, lastUsed: Int?
     public let created: Int?
