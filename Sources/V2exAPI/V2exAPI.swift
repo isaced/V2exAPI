@@ -1,10 +1,15 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 /// V2ex API
 ///
 /// 值类型，所有请求方法都是无状态的 `async` 调用，
 /// 可安全地在多个 actor / Task 之间传递。
-public struct V2exAPI: Sendable {
+// Linux 的 Foundation 未将 URLSession 标记为 Sendable，
+// 但实例只用于无状态请求，这里保留 Sendable 语义。
+public struct V2exAPI: @unchecked Sendable {
     
     /**
      个人访问令牌
@@ -105,6 +110,32 @@ public struct V2exAPI: Sendable {
     }
 
     /**
+     跨平台发起请求
+
+     Apple 平台使用 `URLSession.data(for:)`；Linux 上的 Foundation
+     不提供 async 版本，需要用 completion handler 桥接。
+     */
+    private static func loadData(session: URLSession, request: URLRequest) async throws -> (Data, URLResponse) {
+        #if canImport(FoundationNetworking)
+        return try await withCheckedThrowingContinuation { continuation in
+            session.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                guard let response = response else {
+                    continuation.resume(throwing: URLError(.badServerResponse))
+                    return
+                }
+                continuation.resume(returning: (data ?? Data(), response))
+            }.resume()
+        }
+        #else
+        return try await session.data(for: request)
+        #endif
+    }
+
+    /**
      执行请求，对限流与临时性服务端错误做指数退避重试
      */
     private func perform(_ request: URLRequest) async throws -> (Data, URLResponse) {
@@ -113,7 +144,7 @@ public struct V2exAPI: Sendable {
             let data: Data
             let response: URLResponse
             do {
-                (data, response) = try await session.data(for: request)
+                (data, response) = try await Self.loadData(session: session, request: request)
             } catch {
                 if let error = error as? V2exAPIError {
                     throw error

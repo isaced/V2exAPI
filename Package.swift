@@ -6,6 +6,7 @@ import PackageDescription
 
 let package = Package(
     name: "V2exAPI",
+    // Apple 平台的最低版本；Linux 会忽略这一段。
     platforms: [
         .iOS(.v15),
         .macOS(.v12),

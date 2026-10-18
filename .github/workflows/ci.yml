@@ -38,6 +38,28 @@ jobs:
           fi
           echo "No semantic lint issues found."
 
+  # Linux：Foundation 走 FoundationNetworking，URLSession 也没有 async 版本，
+  # 单独跑一遍确保跨平台分支没写坏
+  test-linux:
+    name: Test (Linux, Swift ${{ matrix.swift }})
+    runs-on: ubuntu-latest
+    container: swift:${{ matrix.swift }}-jammy
+    strategy:
+      fail-fast: false
+      matrix:
+        swift: ["5.7", "5.9", "6.0"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Build
+        run: swift build
+
+      - name: Test
+        run: swift test
+
   # 宿主平台：完整测试
   test-macos:
     name: Test (macOS)
