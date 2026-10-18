@@ -1,7 +1,9 @@
 {
   "version": 1,
   "lineLength": 200,
-  "indentation": { "spaces": 4 },
+  "indentation": {
+    "spaces": 4
+  },
   "maximumBlankLines": 3,
   "respectsExistingLineBreaks": true,
   "reflowMultilineStringLiterals": "never",
@@ -11,7 +13,6 @@
     "AlwaysUseLiteralForEmptyCollectionInit": false,
     "AlwaysUseLowerCamelCase": true,
     "AmbiguousTrailingClosureOverload": true,
-    "AvoidRetroactiveConformances": true,
     "BeginDocumentationCommentWithOneLineSummary": false,
     "DoNotUseSemicolons": true,
     "DontRepeatTypeInStaticProperties": true,
@@ -26,7 +27,6 @@
     "NoAssignmentInExpressions": true,
     "NoBlockComments": false,
     "NoCasesWithOnlyFallthrough": true,
-    "NoEmptyLinesOpeningClosingBraces": false,
     "NoEmptyTrailingClosureParentheses": true,
     "NoLabelsInCasePatterns": true,
     "NoLeadingUnderscores": true,

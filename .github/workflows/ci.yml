@@ -27,7 +27,9 @@ jobs:
             --recursive Sources Tests > "$REPORT" 2>&1 || true
 
           # 只保留语义/安全类规则，过滤纯排版噪声（尾随空白、缩进、行宽等）
+          # 忽略纯排版规则与配置自身的兼容性提示（不同 Xcode 版本支持的规则不同）
           FINDINGS=$(grep -E "warning:|error:" "$REPORT" \
+            | grep -v "Configuration contains an unrecognized rule" \
             | grep -vE "TrailingWhitespace|\[Spacing\]|\[Indentation\]|\[AddLines\]|\[LineLength\]" \
             || true)
 
