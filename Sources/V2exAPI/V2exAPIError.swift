@@ -77,7 +77,7 @@ public enum V2exAPIError: Error, LocalizedError {
     }
 
     /// V2EX 的限流信息，来自响应头 `X-Rate-Limit-*`
-    public struct RateLimit: Equatable, CustomStringConvertible {
+    public struct RateLimit: Equatable, Sendable, CustomStringConvertible {
         /// 每小时允许的请求数
         public let limit: Int?
         /// 当前窗口内剩余请求数
