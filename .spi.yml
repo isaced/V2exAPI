@@ -1,0 +1,6 @@
+version: 1
+builder:
+  configs:
+    # 让 Swift Package Index 生成并托管 DocC 文档
+    - documentation_targets:
+        - V2exAPI

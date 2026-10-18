@@ -1,6 +1,7 @@
 # V2exAPI
 [![Swift](https://img.shields.io/badge/swift-F54A2A?style=for-the-badge&logo=swift&logoColor=white)](https://github.com/isaced/V2exAPI)
-[![CocoaPods](https://img.shields.io/cocoapods/v/V2exAPI.svg?style=for-the-badge)](https://cocoapods.org/pods/V2exAPI)
+[![Swift Package Index](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fisaced%2FV2exAPI%2Fbadge%3Ftype%3Dswift-versions&style=for-the-badge)](https://swiftpackageindex.com/isaced/V2exAPI)
+[![Platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fisaced%2FV2exAPI%2Fbadge%3Ftype%3Dplatforms&style=for-the-badge)](https://swiftpackageindex.com/isaced/V2exAPI)
 [![iOS](https://img.shields.io/badge/iOS-000000?style=for-the-badge&logo=ios&logoColor=white)](https://github.com/isaced/V2exAPI)
 [![macOS](https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=macos&logoColor=F0F0F0)](https://github.com/isaced/V2exAPI)
 
@@ -66,9 +67,16 @@ In Xcode：
 
 ### CocoaPods
 
+> ⚠️ This package is **not published to the public CocoaPods trunk** yet.
+> The snippet below requires publishing it yourself; prefer Swift Package Manager.
+
 ```ruby
 pod 'V2exAPI', '~> 1.1'
 ```
+
+### Documentation
+
+DocC documentation is hosted by [Swift Package Index](https://swiftpackageindex.com/isaced/V2exAPI/documentation/v2exapi).
 
 ## Usage
 
