@@ -8,9 +8,12 @@
 import Foundation
 
 /// 节点
+///
+/// `nodes/show.json` 在节点不存在时可能不返回 `name`，
+/// 因此除 `id` 外均为可选值，避免解码整体失败。
 public struct V2Node: Identifiable, Decodable, Hashable {
     
-    public let name: String
+    public let name: String?
     public let title: String?
     public var id: Int?
     public let avatarLarge: String?
@@ -27,9 +30,21 @@ public struct V2Node: Identifiable, Decodable, Hashable {
     public let parentNodeName: String?
     
     public init(
-        name: String, avatarLarge: String?, avatarNormal: String?, title: String?, url: String?,
-        topics: Int?, footer: String?, header: String?, titleAlternative: String?, avatarMini: String?,
-        stars: Int?, aliases: [String]?, root: Bool?, id: Int?, parentNodeName: String?
+        name: String? = nil,
+        avatarLarge: String? = nil,
+        avatarNormal: String? = nil,
+        title: String? = nil,
+        url: String? = nil,
+        topics: Int? = nil,
+        footer: String? = nil,
+        header: String? = nil,
+        titleAlternative: String? = nil,
+        avatarMini: String? = nil,
+        stars: Int? = nil,
+        aliases: [String]? = nil,
+        root: Bool? = nil,
+        id: Int? = nil,
+        parentNodeName: String? = nil
     ) {
         self.name = name
         self.avatarLarge = avatarLarge
