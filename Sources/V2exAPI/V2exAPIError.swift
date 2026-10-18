@@ -35,6 +35,7 @@ public enum V2exAPIError: Error, LocalizedError {
     /// 网络层错误（无网络、超时、TLS 失败等）
     case network(underlying: any Error)
 
+    /// `LocalizedError` 要求的人类可读描述
     public var errorDescription: String? {
         switch self {
         case let .invalidURL(url):
@@ -88,12 +89,14 @@ public enum V2exAPIError: Error, LocalizedError {
         /// 配额重置时间
         public let reset: Date?
 
+        /// 直接构造限流信息
         public init(limit: Int?, remaining: Int?, reset: Date?) {
             self.limit = limit
             self.remaining = remaining
             self.reset = reset
         }
 
+        /// 从 HTTP 响应头解析；三个头都不存在时返回 `nil`
         public init?(headers: [AnyHashable: Any]?) {
             let limit = V2exAPIError.intValue(headers, "X-Rate-Limit-Limit")
             let remaining = V2exAPIError.intValue(headers, "X-Rate-Limit-Remaining")
@@ -107,6 +110,7 @@ public enum V2exAPIError: Error, LocalizedError {
             self.init(limit: limit, remaining: remaining, reset: reset)
         }
 
+        /// 便于日志输出的文本形式
         public var description: String {
             "RateLimit(limit: \(limit.map(String.init) ?? "-"), remaining: \(remaining.map(String.init) ?? "-"), reset: \(reset.map { ISO8601DateFormatter().string(from: $0) } ?? "-"))"
         }

@@ -3,20 +3,35 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// V2ex API
+/// V2ex API 的客户端
 ///
 /// 值类型，所有请求方法都是无状态的 `async` 调用，
 /// 可安全地在多个 actor / Task 之间传递。
-// Linux 的 Foundation 未将 URLSession 标记为 Sendable，
-// 但实例只用于无状态请求，这里保留 Sendable 语义。
+///
+/// ```swift
+/// let v2ex = V2exAPI(accessToken: "你的 Token")
+///
+/// let hot = try await v2ex.hotTopics()
+/// let topics = try await v2ex.topics(nodeName: "swift", page: 1)
+/// ```
+///
+/// 所有接口在失败时抛出 ``V2exAPIError``，其中包含 HTTP 状态码与限流信息。
+/// 默认会对 429 / 5xx 与临时网络错误做指数退避重试，可通过
+/// ``maxRetries``、``retryDelay``、``retryableStatusCodes`` 调整。
+///
+/// > Note: 标记为 `@unchecked Sendable` 是因为 Linux 的 Foundation 未将
+/// > `URLSession` 声明为 `Sendable`；本类型只做无状态请求，实际是线程安全的。
 public struct V2exAPI: @unchecked Sendable {
     
-    /**
-     个人访问令牌
-     
-     生成参考： https://v2ex.com/help/personal-access-token
-     */
+    /// 个人访问令牌
+    ///
+    /// 生成参考：<https://v2ex.com/help/personal-access-token>。
+    /// 仅 V2 接口需要；为 `nil` 时请求不带 `Authorization` 头。
     public var accessToken: String?
+
+    /// 发起请求使用的 `URLSession`
+    ///
+    /// 可替换为自定义实例以启用缓存、代理或用于测试注入。
     public var session = URLSession.shared
 
     /// 可重试的状态码，命中时按 `maxRetries` 指数退避重试
@@ -30,6 +45,9 @@ public struct V2exAPI: @unchecked Sendable {
     /// 首次重试的等待时间，后续按 2 的倍数递增
     public var retryDelay: TimeInterval = 1
 
+    /// 创建客户端
+    /// - Parameter accessToken: 可选的个人访问令牌，仅 V2 接口需要。
+    ///   也可以稍后通过 ``accessToken`` 属性设置。
     public init(accessToken: String? = nil) {
         self.accessToken = accessToken
     }
@@ -206,6 +224,8 @@ public struct V2exAPI: @unchecked Sendable {
     }
 
     /// API 版本对应的基础地址
+    ///
+    /// V1 与 V2 的主机名不同：V1 是 `v2ex.com`，V2 是 `www.v2ex.com`。
     enum Endpoint {
         /// V1：`https://v2ex.com/api/`
         case v1

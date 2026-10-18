@@ -31,6 +31,7 @@ public struct V2Response<T: Decodable>: Decodable {
     /// 实际数据，可能为 `nil`
     public let result: T?
 
+    /// 手动构造响应，主要便于测试与 Mock
     public init(success: Bool, message: String? = nil, result: T? = nil) {
         self.success = success
         self.message = message
