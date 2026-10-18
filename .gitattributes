@@ -1,0 +1,17 @@
+# 统一换行符，避免跨平台协作产生噪声 diff
+* text=auto eol=lf
+
+# 明确语言，让 GitHub 正确高亮与统计
+*.swift      text diff=swift
+*.md         text diff=markdown
+*.yml        text
+*.yaml       text
+*.pbxproj    text
+
+# 二进制
+*.png binary
+*.jpg binary
+*.xcuserstate binary
+
+# 生成物不参与 diff 统计
+Package.resolved linguist-generated

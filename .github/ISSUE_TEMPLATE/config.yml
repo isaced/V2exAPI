@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安全问题
+    url: https://github.com/isaced/V2exAPI/security/advisories/new
+    about: 请勿公开报告安全漏洞，使用私密渠道
+  - name: 使用问题
+    url: https://github.com/isaced/V2exAPI/discussions
+    about: 一般的使用疑问请到 Discussions 讨论

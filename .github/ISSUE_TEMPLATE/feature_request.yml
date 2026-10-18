@@ -1,0 +1,35 @@
+name: 功能建议
+description: 提出一个新接口或改进建议
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你想解决的问题
+      description: 描述当前的痛点，而不是直接给方案
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 期望的方案
+      description: 你希望 API 长什么样？可以给出调用示例
+      render: swift
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 备选方案
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: breaking
+    attributes:
+      label: 兼容性
+      options:
+        - label: 该建议会改变现有公开 API 的行为

@@ -1,0 +1,81 @@
+name: Bug 报告
+description: 报告一个可以复现的问题
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！提交前请先搜索是否已有相同 Issue，并确认已升级到最新版本。
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述
+      description: 简要说明发生了什么
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现方式
+      description: 尽量给出最小可复现代码
+      render: swift
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 如有报错请贴出完整错误或堆栈
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: V2exAPI 版本
+      placeholder: "1.2.0"
+    validations:
+      required: true
+
+  - type: input
+    id: swift
+    attributes:
+      label: Swift 版本
+      description: 运行 `swift --version` 的结果
+      placeholder: "Swift 5.9.2 (swift-5.9.2-RELEASE)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 运行平台
+      multiple: true
+      options:
+        - iOS
+        - macOS
+        - tvOS
+        - watchOS
+        - Linux
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 附加信息
+      description: 截图、相关 Issue、已尝试过的排查等
+    validations:
+      required: false
