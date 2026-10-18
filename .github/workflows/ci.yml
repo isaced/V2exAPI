@@ -11,8 +11,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-test:
-    name: Build & Test (macOS)
+  # 语义规则检查：禁止强解包、强 try、隐式解包等真实风险
+  lint:
+    name: Lint (swift-format)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint
+        run: |
+          set -o pipefail
+          REPORT=$(mktemp)
+          xcrun swift-format lint \
+            --configuration .swift-format \
+            --recursive Sources Tests > "$REPORT" 2>&1 || true
+
+          # 只保留语义/安全类规则，过滤纯排版噪声（尾随空白、缩进、行宽等）
+          FINDINGS=$(grep -E "warning:|error:" "$REPORT" \
+            | grep -vE "TrailingWhitespace|\[Spacing\]|\[Indentation\]|\[AddLines\]|\[LineLength\]" \
+            || true)
+
+          if [ -n "$FINDINGS" ]; then
+            echo "$FINDINGS"
+            echo "::error::swift-format reported semantic issues"
+            exit 1
+          fi
+          echo "No semantic lint issues found."
+
+  # 宿主平台：完整测试
+  test-macos:
+    name: Test (macOS)
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
@@ -21,7 +49,55 @@ jobs:
         run: swift --version
 
       - name: Build
-        run: swift build -v
+        run: swift build
 
       - name: Test
         run: swift test --parallel
+
+  # Swift 6 严格并发，防止并发相关的 API 设计退化
+  strict-concurrency:
+    name: Strict Concurrency
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build with -strict-concurrency=complete
+        run: swift build -Xswiftc -strict-concurrency=complete -Xswiftc -warnings-as-errors
+
+  # 交叉编译：库声明支持 iOS / tvOS / watchOS，必须实际可编译
+  build-platforms:
+    name: Build (${{ matrix.platform }})
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - iOS
+          - tvOS
+          - watchOS
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build for ${{ matrix.platform }} Simulator
+        run: |
+          xcodebuild \
+            -scheme V2exAPI \
+            -destination "generic/platform=${{ matrix.platform }} Simulator" \
+            -quiet \
+            build
+
+  # 最低支持版本检查：守住 Package.swift 里声明的下限
+  build-min-deployment:
+    name: Build (macOS 12 minimum)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build with MACOSX_DEPLOYMENT_TARGET=12.0
+        run: |
+          xcodebuild \
+            -scheme V2exAPI \
+            -destination "platform=macOS,arch=arm64" \
+            MACOSX_DEPLOYMENT_TARGET=12.0 \
+            -quiet \
+            build
