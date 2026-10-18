@@ -67,13 +67,13 @@ A [V2ex](https://v2ex.com/) API wrapper for iOS/macOS, built with Swift.
 via [Swift Package Manager](https://swift.org/package-manager/) Install to your project，Add in `Package.swift`：
 
 ```swift
-.package(url: "https://github.com/isaced/V2exAPI.git", from: "1.1.0"),
+.package(url: "https://github.com/isaced/V2exAPI.git", from: "1.2.0"),
 ```
 
 In Xcode：
 - File > Swift Packages > Add Package Dependency
 - Add https://github.com/isaced/V2exAPI.git
-- Select "Up to Next Major" with "1.1.0"
+- Select "Up to Next Major" with "1.2.0"
 
 ### CocoaPods
 

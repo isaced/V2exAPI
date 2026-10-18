@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-18
+
 ### 破坏性变更
 
 - **需要 Swift 5.9+（Xcode 15+）工具链**：`swift-tools-version` 从 5.6 升至 5.9，
@@ -110,7 +112,8 @@
 
 - 首个正式版本，V1 / V2 接口覆盖度 100%。
 
-[Unreleased]: https://github.com/isaced/V2exAPI/compare/1.1.1...HEAD
+[Unreleased]: https://github.com/isaced/V2exAPI/compare/1.2.0...HEAD
+[1.2.0]: https://github.com/isaced/V2exAPI/compare/1.1.1...1.2.0
 [1.1.1]: https://github.com/isaced/V2exAPI/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/isaced/V2exAPI/compare/1.0.3...1.1.0
 [1.0.3]: https://github.com/isaced/V2exAPI/compare/1.0.2...1.0.3

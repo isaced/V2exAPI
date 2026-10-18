@@ -64,13 +64,13 @@
 通过 [Swift Package Manager](https://swift.org/package-manager/) 安装 V2exAPI 到你的项目，在 `Package.swift` 中添加：
 
 ```swift
-.package(url: "https://github.com/isaced/V2exAPI.git", from: "1.1.0"),
+.package(url: "https://github.com/isaced/V2exAPI.git", from: "1.2.0"),
 ```
 
 在 Xcode 中：
 - 菜单 File > Swift Packages > Add Package Dependency
 - 搜索 https://github.com/isaced/V2exAPI.git
-- 选择 "Up to Next Major" 版本 "1.1.0"
+- 选择 "Up to Next Major" 版本 "1.2.0"
 
 
 ### CocoaPods
