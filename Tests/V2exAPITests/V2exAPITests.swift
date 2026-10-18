@@ -199,6 +199,63 @@ final class V2exAPITests: XCTestCase {
         XCTAssertEqual(request.url?.path, "/api/v2/notifications/42")
     }
 
+    // MARK: - 鉴权边界
+
+    func testPublicEndpointsNeverSendAuthorizationEvenWhenTokenSet() async throws {
+        api.accessToken = "STALE-TOKEN"
+        MockURLProtocol.succeed(#"[]"#)
+
+        _ = try await api.hotTopics()
+
+        let request = try XCTUnwrap(MockURLProtocol.recordedRequests.first)
+        XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"),
+                     "公开接口不应携带 Authorization")
+    }
+
+    func testAllV1EndpointsAreAnonymous() async throws {
+        let cases: [(String, () async throws -> Void)] = [
+            ("nodesList", { _ = try await self.api.nodesList() }),
+            ("hotTopics", { _ = try await self.api.hotTopics() }),
+            ("latestTopics", { _ = try await self.api.latestTopics() }),
+            ("nodesShow", { _ = try await self.api.nodesShow(name: "swift") }),
+            ("memberShow", { _ = try await self.api.memberShow(username: "isaced") }),
+            ("repliesAll", { _ = try await self.api.repliesAll(topicId: 1) }),
+            ("nodeTopics", { _ = try await self.api.nodeTopics(nodeName: "swift") }),
+        ]
+
+        for (name, call) in cases {
+            MockURLProtocol.reset()
+            api.accessToken = "TOKEN-SHOULD-NOT-LEAK"
+            MockURLProtocol.succeed(#"[]"#)
+
+            _ = try? await call()
+
+            let request = try XCTUnwrap(MockURLProtocol.recordedRequests.first, name)
+            XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"),
+                         "\(name) 应匿名请求")
+        }
+    }
+
+    func testV2AuthenticatedEndpointsSendToken() async throws {
+        api.accessToken = "REAL-TOKEN"
+        MockURLProtocol.succeed(#"{"success":true,"message":"","result":{"id":1,"username":"me"}}"#)
+
+        _ = try await api.member()
+
+        let request = try XCTUnwrap(MockURLProtocol.recordedRequests.first)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer REAL-TOKEN")
+    }
+
+    func testEmptyTokenIsNotSent() async throws {
+        api.accessToken = ""
+        MockURLProtocol.succeed(#"{"success":true,"message":"","result":{"id":1}}"#)
+
+        _ = try await api.member()
+
+        let request = try XCTUnwrap(MockURLProtocol.recordedRequests.first)
+        XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+    }
+
     // MARK: - 错误处理
 
     func testUnauthorizedThrowsHTTPError() async throws {

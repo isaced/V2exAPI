@@ -52,24 +52,23 @@ public struct V2exAPI: @unchecked Sendable {
         self.accessToken = accessToken
     }
     
-    /**
-     HTTP 请求
-
-     成功时返回解码后的模型与原始响应；失败时抛出 `V2exAPIError`，
-     包含 HTTP 状态码、限流信息或解码错误。
-
-     - parameter  httpMethod: HTTP 方法，默认 GET
-     - parameter  path: 相对 `endpoint` 的路径，不含前导 `/`
-     - parameter  args: 请求参数，GET 拼到 query，POST 放进 JSON body
-     - parameter  decodeClass: 期望解码的模型类型
-     - parameter  endpoint: 使用的 API 版本，默认 V2
-     */
+    /// HTTP 请求
+    ///
+    /// 成功时返回解码后的模型与原始响应；失败时抛出 `V2exAPIError`，
+    /// 包含 HTTP 状态码、限流信息或解码错误。
+    ///
+    /// - parameter  httpMethod: HTTP 方法，默认 GET
+    /// - parameter  path: 相对 `endpoint` 的路径，不含前导 `/`
+    /// - parameter  args: 请求参数，GET 拼到 query，POST 放进 JSON body
+    /// - parameter  decodeClass: 期望解码的模型类型
+    /// - parameter  endpoint: 使用的 API 版本，默认 V2
     private func request<T>(
         httpMethod: String = "GET",
         path: String,
         args: [String: Any]? = nil,
         decodeClass: T.Type,
-        endpoint: Endpoint = .v2
+        endpoint: Endpoint = .v2,
+        anonymous: Bool = false
     ) async throws -> (T, URLResponse) where T : Decodable {
         let urlString = endpoint.baseURL + path
         guard let url = URL(string: urlString) else {
@@ -93,7 +92,8 @@ public struct V2exAPI: @unchecked Sendable {
         request.httpMethod = httpMethod
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        if let accessToken = accessToken {
+        // 公开接口永远不带 Authorization，避免本地残留的过期令牌污染匿名请求
+        if !anonymous, let accessToken, !accessToken.isEmpty {
             request.setValue("Bearer " + accessToken, forHTTPHeaderField: "Authorization")
         }
 
@@ -127,12 +127,10 @@ public struct V2exAPI: @unchecked Sendable {
         }
     }
 
-    /**
-     跨平台发起请求
-
-     Apple 平台使用 `URLSession.data(for:)`；Linux 上的 Foundation
-     不提供 async 版本，需要用 completion handler 桥接。
-     */
+    /// 跨平台发起请求
+    ///
+    /// Apple 平台使用 `URLSession.data(for:)`；Linux 上的 Foundation
+    /// 不提供 async 版本，需要用 completion handler 桥接。
     private static func loadData(session: URLSession, request: URLRequest) async throws -> (Data, URLResponse) {
         #if canImport(FoundationNetworking)
         return try await withCheckedThrowingContinuation { continuation in
@@ -153,9 +151,7 @@ public struct V2exAPI: @unchecked Sendable {
         #endif
     }
 
-    /**
-     执行请求，对限流与临时性服务端错误做指数退避重试
-     */
+    /// 执行请求，对限流与临时性服务端错误做指数退避重试
     private func perform(_ request: URLRequest) async throws -> (Data, URLResponse) {
         var attempt = 0
         while true {
@@ -214,9 +210,7 @@ public struct V2exAPI: @unchecked Sendable {
         }
     }
 
-    /**
-     构造带路径参数的请求路径，对片段做百分号编码，避免非法字符导致 URL 失效
-     */
+    /// 构造带路径参数的请求路径，对片段做百分号编码，避免非法字符导致 URL 失效
     private func path(_ components: String...) -> String {
         components.map {
             $0.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? $0
@@ -245,9 +239,8 @@ public struct V2exAPI: @unchecked Sendable {
     
     // =========== Others ===========
 
-    /**
-     获取节点列表
-     */
+    /// 获取节点列表
+    /// - Note: 公开接口，**无需**访问令牌。此方法始终以匿名方式请求。
     public func nodesList(fields: [String]? = nil, sortBy: String = "topics", reverse: String = "1") async throws -> [V2Node] {
         let fieldsList = fields ?? ["id", "name", "title", "topics", "aliases"]
         let (data, _) = try await request(
@@ -258,48 +251,48 @@ public struct V2exAPI: @unchecked Sendable {
                 "reverse": reverse,
             ],
             decodeClass: [V2Node].self,
-            endpoint: .v1
+            endpoint: .v1,
+            anonymous: true
         )
         return data
     }
 
     // =========== V1 ===========
 
-    /**
-     最热主题
-
-     相当于首页右侧的 10 大每天的内容。
-     */
+    /// 最热主题
+    ///
+    /// 相当于首页右侧的 10 大每天的内容。
+    /// - Note: 公开接口，**无需**访问令牌。此方法始终以匿名方式请求。
     public func hotTopics() async throws -> [V2Topic] {
         let (data, _) = try await request(
             path: "topics/hot.json",
             decodeClass: [V2Topic].self,
-            endpoint: .v1
+            endpoint: .v1,
+            anonymous: true
         )
         return data
     }
 
-    /**
-     最新主题
-
-     相当于首页的“全部”这个 tab 下的最新内容。
-     */
+    /// 最新主题
+    ///
+    /// 相当于首页的“全部”这个 tab 下的最新内容。
+    /// - Note: 公开接口，**无需**访问令牌。此方法始终以匿名方式请求。
     public func latestTopics() async throws -> [V2Topic] {
         let (data, _) = try await request(
             path: "topics/latest.json",
             decodeClass: [V2Topic].self,
-            endpoint: .v1
+            endpoint: .v1,
+            anonymous: true
         )
         return data
     }
 
-    /**
-     节点信息
-
-     获得指定节点的名字，简介，URL 及头像图片的地址。
-
-     - parameter  name: 节点名（V2EX 的节点名全是半角英文或者数字）
-     */
+    /// 节点信息
+    ///
+    /// 获得指定节点的名字，简介，URL 及头像图片的地址。
+    ///
+    /// - parameter  name: 节点名（V2EX 的节点名全是半角英文或者数字）
+    /// - Note: 公开接口，**无需**访问令牌。此方法始终以匿名方式请求。
     public func nodesShow(name: String) async throws -> V2Node {
         let (data, _) = try await request(
             path: "nodes/show.json",
@@ -307,7 +300,8 @@ public struct V2exAPI: @unchecked Sendable {
                 "name": name
             ],
             decodeClass: SingleOrArray<V2Node>.self,
-            endpoint: .v1
+            endpoint: .v1,
+            anonymous: true
         )
         guard let node = data.value else {
             throw V2exAPIError.apiFailure(message: "node not found: \(name)", response: nil)
@@ -315,14 +309,13 @@ public struct V2exAPI: @unchecked Sendable {
         return node
     }
 
-    /**
-     用户主页
-
-     获得指定用户的自我介绍，及其登记的社交网站信息。
-
-     - parameter  username: 用户名
-     - parameter  id: 用户在 V2EX 的数字 ID
-     */
+    /// 用户主页
+    ///
+    /// 获得指定用户的自我介绍，及其登记的社交网站信息。
+    ///
+    /// - parameter  username: 用户名
+    /// - parameter  id: 用户在 V2EX 的数字 ID
+    /// - Note: 公开接口，**无需**访问令牌。此方法始终以匿名方式请求。
     public func memberShow(username: String? = nil, id: Int? = nil) async throws -> V2Member {
         var args: [String: String] = [:]
         if let username = username {
@@ -340,7 +333,8 @@ public struct V2exAPI: @unchecked Sendable {
             path: "members/show.json",
             args: args,
             decodeClass: SingleOrArray<V2Member>.self,
-            endpoint: .v1
+            endpoint: .v1,
+            anonymous: true
         )
         guard let member = data.value else {
             throw V2exAPIError.apiFailure(message: "member not found", response: nil)
@@ -348,11 +342,10 @@ public struct V2exAPI: @unchecked Sendable {
         return member
     }
 
-    /**
-     获取指定主题下的回复列表
-
-     - parameter  topicId: 主题ID
-     */
+    /// 获取指定主题下的回复列表
+    ///
+    /// - parameter  topicId: 主题ID
+    /// - Note: 公开接口，**无需**访问令牌。此方法始终以匿名方式请求。
     public func repliesAll(topicId: Int) async throws -> [V2Comment] {
         let (data, _) = try await request(
             path: "replies/show.json",
@@ -360,16 +353,16 @@ public struct V2exAPI: @unchecked Sendable {
                 "topic_id": topicId
             ],
             decodeClass: [V2Comment].self,
-            endpoint: .v1
+            endpoint: .v1,
+            anonymous: true
         )
         return data
     }
 
-    /**
-     获取节点下的主题列表（V1）
-
-     - parameter  nodeName: 节点名，如 "swift"
-     */
+    /// 获取节点下的主题列表（V1）
+    ///
+    /// - parameter  nodeName: 节点名，如 "swift"
+    /// - Note: 公开接口，**无需**访问令牌。此方法始终以匿名方式请求。
     public func nodeTopics(nodeName: String) async throws -> [V2Topic] {
         let (data, _) = try await request(
             path: "topics/show.json",
@@ -377,18 +370,18 @@ public struct V2exAPI: @unchecked Sendable {
                 "node_name": nodeName
             ],
             decodeClass: [V2Topic].self,
-            endpoint: .v1
+            endpoint: .v1,
+            anonymous: true
         )
         return data
     }
 
-    /**
-     获取节点下的主题列表（V1）
-
-     与 `nodeTopics(nodeName:)` 等价，保留旧命名以兼容已有调用方。
-
-     - parameter  nodeName: 节点名，如 "swift"
-     */
+    /// 获取节点下的主题列表（V1）
+    ///
+    /// 与 ``nodeTopics(nodeName:)`` 等价，保留旧命名以兼容已有调用方。
+    ///
+    /// - Parameter nodeName: 节点名，如 "swift"
+    /// - Note: 公开接口，**无需**访问令牌。此方法始终以匿名方式请求。
     @available(*, deprecated, renamed: "nodeTopics(nodeName:)")
     public func topics(nodeName: String) async throws -> [V2Topic] {
         try await nodeTopics(nodeName: nodeName)
@@ -396,12 +389,11 @@ public struct V2exAPI: @unchecked Sendable {
 
     // =========== V2 ===========
 
-    /**
-     获取指定节点下的主题
-
-     - parameter  nodeName: 节点名，如 "swift"
-     - parameter  page: 分页页码，默认为 1
-     */
+    /// 获取指定节点下的主题
+    ///
+    /// - parameter  nodeName: 节点名，如 "swift"
+    /// - parameter  page: 分页页码，默认为 1
+    /// - Note: 需要有效的访问令牌（``accessToken``）。
     public func topics(nodeName: String, page: Int = 1) async throws -> V2Response<[V2Topic]?> {
         let (data, _) = try await request(
             path: path("nodes", nodeName, "topics"),
@@ -413,12 +405,11 @@ public struct V2exAPI: @unchecked Sendable {
         return data
     }
 
-    /**
-     获取指定主题下的回复
-
-     - parameter  topicId: 主题ID
-     - parameter  page: 分页页码，默认为 1
-     */
+    /// 获取指定主题下的回复
+    ///
+    /// - parameter  topicId: 主题ID
+    /// - parameter  page: 分页页码，默认为 1
+    /// - Note: 需要有效的访问令牌（``accessToken``）。
     public func replies(topicId: Int, page: Int = 1) async throws -> V2Response<[V2Comment]?> {
         let (data, _) = try await request(
             path: path("topics", String(topicId), "replies"),
@@ -430,11 +421,10 @@ public struct V2exAPI: @unchecked Sendable {
         return data
     }
 
-    /**
-     获取指定主题
-
-     - parameter  topicId: 主题ID
-     */
+    /// 获取指定主题
+    ///
+    /// - parameter  topicId: 主题ID
+    /// - Note: 需要有效的访问令牌（``accessToken``）。
     public func topic(topicId: Int) async throws -> V2Response<V2Topic?> {
         let (data, _) = try await request(
             path: path("topics", String(topicId)),
@@ -443,11 +433,10 @@ public struct V2exAPI: @unchecked Sendable {
         return data
     }
 
-    /**
-     获取指定节点
-
-     - parameter  nodeName: 节点名
-     */
+    /// 获取指定节点
+    ///
+    /// - parameter  nodeName: 节点名
+    /// - Note: 需要有效的访问令牌（``accessToken``）。
     public func getNode(nodeName: String) async throws -> V2Response<V2Node?> {
         let (data, _) = try await request(
             path: path("nodes", nodeName),
@@ -456,11 +445,10 @@ public struct V2exAPI: @unchecked Sendable {
         return data
     }
 
-    /**
-     获取最新的提醒
-
-     - parameter  page: 分页页码，默认为 1
-     */
+    /// 获取最新的提醒
+    ///
+    /// - parameter  page: 分页页码，默认为 1
+    /// - Note: 需要有效的访问令牌（``accessToken``）。
     public func notifications(page: Int = 1) async throws -> V2Response<[V2Notification]?> {
         let (data, _) = try await request(
             path: "notifications",
@@ -472,13 +460,12 @@ public struct V2exAPI: @unchecked Sendable {
         return data
     }
 
-    /**
-     删除指定的提醒
-
-     成功时返回 `success: true`，`result` 为空。
-
-     - parameter  notificationId: 提醒ID
-     */
+    /// 删除指定的提醒
+    ///
+    /// 成功时返回 `success: true`，`result` 为空。
+    ///
+    /// - parameter  notificationId: 提醒ID
+    /// - Note: 需要有效的访问令牌（``accessToken``）。
     public func deleteNotification(notificationId: Int) async throws -> V2Response<V2EmptyResult> {
         let (data, _) = try await request(
             httpMethod: "DELETE",
@@ -488,9 +475,8 @@ public struct V2exAPI: @unchecked Sendable {
         return data
     }
 
-    /**
-     获取自己的 Profile
-     */
+    /// 获取自己的 Profile
+    /// - Note: 需要有效的访问令牌（``accessToken``）。
     public func member() async throws -> V2Response<V2Member> {
         let (data, _) = try await request(
             path: "member",
@@ -499,9 +485,8 @@ public struct V2exAPI: @unchecked Sendable {
         return data
     }
 
-    /**
-     查看当前使用的令牌
-     */
+    /// 查看当前使用的令牌
+    /// - Note: 需要有效的访问令牌（``accessToken``）。
     public func token() async throws -> V2Response<V2Token> {
         let (data, _) = try await request(
             path: "token",
@@ -510,14 +495,13 @@ public struct V2exAPI: @unchecked Sendable {
         return data
     }
 
-    /**
-     创建新的令牌
-
-     你可以在系统中最多创建 10 个 Personal Access Token。
-
-     - parameter  scope: 可选 everything 或者 regular，如果是 regular 类型的 Token 将不能用于进一步创建新的 token
-     - parameter  expiration: 可支持的值：2592000，5184000，7776000 或者 15552000，即 30 天，60 天，90 天或者 180 天的秒数
-     */
+    /// 创建新的令牌
+    ///
+    /// 你可以在系统中最多创建 10 个 Personal Access Token。
+    ///
+    /// - parameter  scope: 可选 everything 或者 regular，如果是 regular 类型的 Token 将不能用于进一步创建新的 token
+    /// - parameter  expiration: 可支持的值：2592000，5184000，7776000 或者 15552000，即 30 天，60 天，90 天或者 180 天的秒数
+    /// - Note: 需要有效的访问令牌（``accessToken``）。
     public func createToken(expiration: Int, scope: String? = nil) async throws -> V2Response<V2Token> {
         var args: [String: Any] = ["expiration": expiration]
         if let scope = scope {
