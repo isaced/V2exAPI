@@ -1,7 +1,7 @@
 Pod::Spec.new do |spec|
 
   spec.name         = "V2exAPI"
-  spec.version      = "1.0.0"
+  spec.version      = "1.2.0"
   spec.summary      = "V2ex API 的 Swift 封装，支持 iOS/macOS"
 
   spec.description  = <<-DESC
@@ -22,6 +22,7 @@ Pod::Spec.new do |spec|
   spec.source       = { :git => "https://github.com/isaced/V2exAPI.git", :tag => "#{spec.version}" }
 
   spec.source_files  = ["Sources/**/*.swift"]
+  spec.frameworks    = "Foundation"
 
-  spec.swift_versions = ['5.0']
+  spec.swift_versions = ['5.6', '5.7', '5.8', '5.9', '6.0']
 end
