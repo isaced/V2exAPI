@@ -11,197 +11,277 @@ public struct V2exAPI {
     public var accessToken: String?
     public var session = URLSession.shared
     
-    private let endpointV1 = "https://v2ex.com/api/"
-    private let endpointV2 = "https://www.v2ex.com/api/v2/"
-    
     public init(accessToken: String? = nil) {
         self.accessToken = accessToken
     }
     
     /**
      HTTP 请求
+
+     成功时返回解码后的模型与原始响应；失败时抛出 `V2exAPIError`，
+     包含 HTTP 状态码、限流信息或解码错误。
+
+     - parameter  httpMethod: HTTP 方法，默认 GET
+     - parameter  path: 相对 `endpoint` 的路径，不含前导 `/`
+     - parameter  args: 请求参数，GET 拼到 query，POST 放进 JSON body
+     - parameter  decodeClass: 期望解码的模型类型
+     - parameter  endpoint: 使用的 API 版本，默认 V2
      */
-    private func request<T>(httpMethod: String = "GET", url: String, args: [String: Any]? = nil, decodeClass: T.Type) async throws -> (
-        T?, URLResponse?
-    ) where T : Decodable {
-        let urlComponents = NSURLComponents(string: url)!
-        
-        if httpMethod != "POST" && args != nil {
-            urlComponents.queryItems =
-            args?.map({ (k, v) in
-                return NSURLQueryItem(name: k, value: "\(v)")
-            }) as [URLQueryItem]?
+    private func request<T>(
+        httpMethod: String = "GET",
+        path: String,
+        args: [String: Any]? = nil,
+        decodeClass: T.Type,
+        endpoint: Endpoint = .v2
+    ) async throws -> (T, URLResponse) where T : Decodable {
+        let urlString = endpoint.baseURL + path
+        guard let url = URL(string: urlString) else {
+            throw V2exAPIError.invalidURL(urlString)
         }
-        
+        guard var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            throw V2exAPIError.invalidURL(urlString)
+        }
+
+        if httpMethod != "POST", let args = args, !args.isEmpty {
+            urlComponents.queryItems = args.map { key, value in
+                URLQueryItem(name: key, value: "\(value)")
+            }
+        }
+
         guard let requestUrl = urlComponents.url else {
-            return (nil, nil)
+            throw V2exAPIError.invalidURL(urlString)
         }
-        
+
         var request = URLRequest(url: requestUrl)
         request.httpMethod = httpMethod
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         if let accessToken = accessToken {
             request.setValue("Bearer " + accessToken, forHTTPHeaderField: "Authorization")
         }
-        
-        if httpMethod == "POST" && args != nil{
-            request.httpBody = try? JSONSerialization.data(withJSONObject: args as Any)
+
+        if httpMethod == "POST", let args = args, !args.isEmpty {
+            request.httpBody = try? JSONSerialization.data(withJSONObject: args)
         }
-        
-        let (data, response) = try await session.data(for: request)
-        
-        let decoder = JSONDecoder()
-        
-        let obj = try decoder.decode(decodeClass.self, from: data)
-        
-        return (obj, response)
+
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch {
+            if let error = error as? V2exAPIError {
+                throw error
+            }
+            throw V2exAPIError.network(underlying: error)
+        }
+
+        if let httpResponse = response as? HTTPURLResponse,
+           !(200..<300).contains(httpResponse.statusCode) {
+            // 非 2xx：把状态码、服务端错误信息和限流信息一并抛出
+            var message = V2exAPIError.message(from: data)
+            if message == nil,
+               let body = try? JSONDecoder().decode(V2exAPIFailure.self, from: data) {
+                message = body.message
+            }
+            throw V2exAPIError.http(
+                statusCode: httpResponse.statusCode,
+                message: message,
+                rateLimit: V2exAPIError.rateLimit(from: httpResponse),
+                response: httpResponse
+            )
+        }
+
+        do {
+            let obj = try JSONDecoder().decode(decodeClass.self, from: data)
+            return (obj, response)
+        } catch {
+            throw V2exAPIError.decoding(underlying: error, body: data)
+        }
+    }
+
+    /**
+     构造带路径参数的请求路径，对片段做百分号编码，避免非法字符导致 URL 失效
+     */
+    private func path(_ components: String...) -> String {
+        components.map {
+            $0.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? $0
+        }.joined(separator: "/")
+    }
+
+    /// API 版本对应的基础地址
+    enum Endpoint {
+        /// V1：`https://v2ex.com/api/`
+        case v1
+        /// V2：`https://www.v2ex.com/api/v2/`
+        case v2
+
+        var baseURL: String {
+            switch self {
+            case .v1:
+                return "https://v2ex.com/api/"
+            case .v2:
+                return "https://www.v2ex.com/api/v2/"
+            }
+        }
     }
     
     
     // =========== Others ===========
-    
+
     /**
      获取节点列表
      */
-    public func nodesList(fields: [String]? = nil, sortBy: String = "topics", reverse: String = "1") async throws -> [V2Node]? {
-        var fieldsList = ["id","name","title","topics","aliases"]
-        if let fields {
-            fieldsList = fields
-        }
+    public func nodesList(fields: [String]? = nil, sortBy: String = "topics", reverse: String = "1") async throws -> [V2Node] {
+        let fieldsList = fields ?? ["id", "name", "title", "topics", "aliases"]
         let (data, _) = try await request(
-            url: endpointV1 + "nodes/list.json",
+            path: "nodes/list.json",
             args: [
                 "fields": fieldsList.joined(separator: ","),
                 "sort_by": sortBy,
                 "reverse": reverse,
             ],
-            decodeClass: [V2Node].self
+            decodeClass: [V2Node].self,
+            endpoint: .v1
         )
-        return data;
+        return data
     }
-    
+
     // =========== V1 ===========
-    
+
     /**
      最热主题
-     
+
      相当于首页右侧的 10 大每天的内容。
      */
-    public func hotTopics() async throws -> [V2Topic]? {
+    public func hotTopics() async throws -> [V2Topic] {
         let (data, _) = try await request(
-            url: endpointV1 + "topics/hot.json",
-            decodeClass: [V2Topic].self
+            path: "topics/hot.json",
+            decodeClass: [V2Topic].self,
+            endpoint: .v1
         )
         return data
     }
-    
+
     /**
      最新主题
-     
+
      相当于首页的“全部”这个 tab 下的最新内容。
      */
-    public func latestTopics() async throws -> [V2Topic]? {
+    public func latestTopics() async throws -> [V2Topic] {
         let (data, _) = try await request(
-            url: endpointV1 + "topics/latest.json",
-            decodeClass: [V2Topic].self
+            path: "topics/latest.json",
+            decodeClass: [V2Topic].self,
+            endpoint: .v1
         )
         return data
     }
-    
+
     /**
      节点信息
-     
+
      获得指定节点的名字，简介，URL 及头像图片的地址。
-     
+
      - parameter  name: 节点名（V2EX 的节点名全是半角英文或者数字）
      */
-    public func nodesShow(name: String) async throws -> V2Node? {
+    public func nodesShow(name: String) async throws -> V2Node {
         let (data, _) = try await request(
-            url: endpointV1 + "nodes/show.json",
+            path: "nodes/show.json",
             args: [
                 "name": name
             ],
-            decodeClass: V2Node.self
+            decodeClass: V2Node.self,
+            endpoint: .v1
         )
-        return data;
+        return data
     }
-    
+
     /**
      用户主页
-     
+
      获得指定用户的自我介绍，及其登记的社交网站信息。
-     
+
      - parameter  username: 用户名
      - parameter  id: 用户在 V2EX 的数字 ID
      */
-    public func memberShow(username: String? = nil, id: Int? = nil) async throws -> V2Member? {
-        var args:[String:String] = [:]
+    public func memberShow(username: String? = nil, id: Int? = nil) async throws -> V2Member {
+        var args: [String: String] = [:]
         if let username = username {
-            args["username"] = username;
+            args["username"] = username
         }
         if let id = id {
-            args["id"] = String(id);
+            args["id"] = String(id)
         }
-        
+
         if args.isEmpty {
-            return nil
+            throw V2exAPIError.invalidURL("members/show.json?username=... or ?id=...")
         }
-        
+
         let (data, _) = try await request(
-            url: endpointV1 + "members/show.json",
+            path: "members/show.json",
             args: args,
-            decodeClass: V2Member.self
+            decodeClass: V2Member.self,
+            endpoint: .v1
         )
-        return data;
+        return data
     }
-    
+
     /**
      获取指定主题下的回复列表
-     
+
      - parameter  topicId: 主题ID
      */
-    public func repliesAll(topicId: Int) async throws -> [V2Comment]? {
-        let path = "replies/show.json"
+    public func repliesAll(topicId: Int) async throws -> [V2Comment] {
         let (data, _) = try await request(
-            url: endpointV1 + path,
+            path: "replies/show.json",
             args: [
                 "topic_id": topicId
             ],
-            decodeClass: [V2Comment].self
+            decodeClass: [V2Comment].self,
+            endpoint: .v1
         )
         return data
     }
-    
+
     /**
-     获取节点下的主题列表
-     
-     - parameter  topicId: 主题ID
+     获取节点下的主题列表（V1）
+
+     - parameter  nodeName: 节点名，如 "swift"
      */
-    public func topics(nodeName: String) async throws -> [V2Topic]? {
-        let path = "topics/show.json"
+    public func nodeTopics(nodeName: String) async throws -> [V2Topic] {
         let (data, _) = try await request(
-            url: endpointV1 + path,
+            path: "topics/show.json",
             args: [
                 "node_name": nodeName
             ],
-            decodeClass: [V2Topic].self
+            decodeClass: [V2Topic].self,
+            endpoint: .v1
         )
         return data
     }
-    
+
+    /**
+     获取节点下的主题列表（V1）
+
+     与 `nodeTopics(nodeName:)` 等价，保留旧命名以兼容已有调用方。
+
+     - parameter  nodeName: 节点名，如 "swift"
+     */
+    @available(*, deprecated, renamed: "nodeTopics(nodeName:)")
+    public func topics(nodeName: String) async throws -> [V2Topic] {
+        try await nodeTopics(nodeName: nodeName)
+    }
+
     // =========== V2 ===========
-    
+
     /**
      获取指定节点下的主题
-     
+
      - parameter  nodeName: 节点名，如 "swift"
      - parameter  page: 分页页码，默认为 1
      */
-    public func topics(nodeName: String, page: Int = 1) async throws -> V2Response<[V2Topic]?>? {
-        let path = "nodes/\(nodeName)/topics"
+    public func topics(nodeName: String, page: Int = 1) async throws -> V2Response<[V2Topic]?> {
         let (data, _) = try await request(
-            url: endpointV2 + path,
+            path: path("nodes", nodeName, "topics"),
             args: [
                 "p": String(page)
             ],
@@ -209,17 +289,16 @@ public struct V2exAPI {
         )
         return data
     }
-    
+
     /**
      获取指定主题下的回复
-     
+
      - parameter  topicId: 主题ID
      - parameter  page: 分页页码，默认为 1
      */
-    public func replies(topicId: Int, page: Int = 1) async throws -> V2Response<[V2Comment]?>? {
-        let path = "topics/\(topicId)/replies"
+    public func replies(topicId: Int, page: Int = 1) async throws -> V2Response<[V2Comment]?> {
         let (data, _) = try await request(
-            url: endpointV2 + path,
+            path: path("topics", String(topicId), "replies"),
             args: [
                 "p": String(page)
             ],
@@ -227,44 +306,41 @@ public struct V2exAPI {
         )
         return data
     }
-    
+
     /**
      获取指定主题
-     
+
      - parameter  topicId: 主题ID
      */
-    public func topic(topicId: Int) async throws -> V2Response<V2Topic?>? {
-        let path = "topics/\(topicId)"
+    public func topic(topicId: Int) async throws -> V2Response<V2Topic?> {
         let (data, _) = try await request(
-            url: endpointV2 + path,
+            path: path("topics", String(topicId)),
             decodeClass: V2Response<V2Topic?>.self
         )
         return data
     }
-    
+
     /**
      获取指定节点
-     
+
      - parameter  nodeName: 节点名
      */
-    public func getNode(nodeName: String) async throws -> V2Response<V2Node?>? {
-        let path = "nodes/\(nodeName)"
+    public func getNode(nodeName: String) async throws -> V2Response<V2Node?> {
         let (data, _) = try await request(
-            url: endpointV2 + path,
+            path: path("nodes", nodeName),
             decodeClass: V2Response<V2Node?>.self
         )
         return data
     }
-    
+
     /**
      获取最新的提醒
-     
+
      - parameter  page: 分页页码，默认为 1
      */
-    public func notifications(page: Int = 1) async throws -> V2Response<[V2Notification]?>? {
-        let path = "notifications"
+    public func notifications(page: Int = 1) async throws -> V2Response<[V2Notification]?> {
         let (data, _) = try await request(
-            url: endpointV2 + path,
+            path: "notifications",
             args: [
                 "p": String(page)
             ],
@@ -272,66 +348,60 @@ public struct V2exAPI {
         )
         return data
     }
-    
+
     /**
-     获取最新的提醒
-     
-     - parameter  notification_id: 提醒ID
+     删除指定的提醒
+
+     - parameter  notificationId: 提醒ID
      */
-    public func deleteNotification(notificationId: Int) async throws -> V2Response<Data>? {
-        let path = "notifications/\(notificationId)"
+    public func deleteNotification(notificationId: Int) async throws -> V2Response<Data?> {
         let (data, _) = try await request(
             httpMethod: "DELETE",
-            url: endpointV2 + path,
-            decodeClass: V2Response<Data>.self
+            path: path("notifications", String(notificationId)),
+            decodeClass: V2Response<Data?>.self
         )
         return data
     }
-    
-    
+
     /**
      获取自己的 Profile
      */
-    public func member() async throws -> V2Response<V2Member>? {
-        let path = "member"
+    public func member() async throws -> V2Response<V2Member> {
         let (data, _) = try await request(
-            url: endpointV2 + path,
+            path: "member",
             decodeClass: V2Response<V2Member>.self
         )
         return data
     }
-    
-    
+
     /**
      查看当前使用的令牌
      */
-    public func token() async throws -> V2Response<V2Token>? {
-        let path = "token"
+    public func token() async throws -> V2Response<V2Token> {
         let (data, _) = try await request(
-            url: endpointV2 + path,
+            path: "token",
             decodeClass: V2Response<V2Token>.self
         )
         return data
     }
-    
+
     /**
      创建新的令牌
-     
+
      你可以在系统中最多创建 10 个 Personal Access Token。
-     
+
      - parameter  scope: 可选 everything 或者 regular，如果是 regular 类型的 Token 将不能用于进一步创建新的 token
      - parameter  expiration: 可支持的值：2592000，5184000，7776000 或者 15552000，即 30 天，60 天，90 天或者 180 天的秒数
      */
-    public func createToken(expiration: Int, scope: String? = nil) async throws -> V2Response<V2Token>? {
-        let path = "token"
-        var args:[String: Any] = ["expiration": expiration]
+    public func createToken(expiration: Int, scope: String? = nil) async throws -> V2Response<V2Token> {
+        var args: [String: Any] = ["expiration": expiration]
         if let scope = scope {
             args["scope"] = scope
         }
-        
+
         let (data, _) = try await request(
             httpMethod: "POST",
-            url: endpointV2 + path,
+            path: "token",
             args: args,
             decodeClass: V2Response<V2Token>.self
         )
