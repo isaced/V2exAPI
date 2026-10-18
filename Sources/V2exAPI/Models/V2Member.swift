@@ -8,7 +8,7 @@
 import Foundation
 
 /// 会员
-public struct V2Member : Decodable, Hashable {
+public struct V2Member: Decodable, Hashable, Sendable {
     
     public var id: Int?
     public var username: String?

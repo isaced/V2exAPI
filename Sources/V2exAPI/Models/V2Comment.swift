@@ -11,7 +11,7 @@ import Foundation
 ///
 /// V2 接口在主题被删除、回复者已注销等场景下可能缺少 `member` 等字段，
 /// 因此除 `id` 外的字段均为可选值。
-public struct V2Comment: Identifiable, Decodable, Hashable {
+public struct V2Comment: Identifiable, Decodable, Hashable, Sendable {
     
     public let id: Int
     public let content: String?

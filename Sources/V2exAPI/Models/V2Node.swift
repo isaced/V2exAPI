@@ -11,7 +11,7 @@ import Foundation
 ///
 /// `nodes/show.json` 在节点不存在时可能不返回 `name`，
 /// 因此除 `id` 外均为可选值，避免解码整体失败。
-public struct V2Node: Identifiable, Decodable, Hashable {
+public struct V2Node: Identifiable, Decodable, Hashable, Sendable {
     
     public let name: String?
     public let title: String?

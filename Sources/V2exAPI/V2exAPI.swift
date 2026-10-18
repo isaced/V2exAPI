@@ -1,7 +1,10 @@
 import Foundation
 
 /// V2ex API
-public struct V2exAPI {
+///
+/// 值类型，所有请求方法都是无状态的 `async` 调用，
+/// 可安全地在多个 actor / Task 之间传递。
+public struct V2exAPI: Sendable {
     
     /**
      个人访问令牌
