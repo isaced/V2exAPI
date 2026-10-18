@@ -554,6 +554,53 @@ final class V2exAPITests: XCTestCase {
         XCTAssertEqual(calls, 1, "非 URLError 不应重试")
     }
 
+    // MARK: - V1 错误体中的限流信息
+
+    func testRateLimitParsedFromV1ErrorBody() async throws {
+        // V1 的真实 404 响应体
+        let body = #"""
+        {"status": "error", "message": "Object Not Found", "rate_limit": {"used": 29, "quota": 600, "reset_at": 1792306188}}
+        """#
+        MockURLProtocol.fail(404, body)
+
+        do {
+            _ = try await api.nodesShow(name: "nope")
+            XCTFail("should throw")
+        } catch let error as V2exAPIError {
+            let rateLimit = try XCTUnwrap(error.rateLimit, "应从 body 解析出限流信息")
+            XCTAssertEqual(rateLimit.limit, 600)
+            XCTAssertEqual(rateLimit.remaining, 571, "remaining = quota - used")
+            XCTAssertNotNil(rateLimit.reset)
+            XCTAssertEqual(error.statusCode, 404)
+        }
+    }
+
+    func testRateLimitFromBodyReturnsNilWithoutField() {
+        let body = Data(#"{"message":"x"}"#.utf8)
+        XCTAssertNil(V2exAPIError.RateLimit(body: body))
+        XCTAssertNil(V2exAPIError.RateLimit(body: Data()))
+        XCTAssertNil(V2exAPIError.RateLimit(body: Data("<html>".utf8)))
+    }
+
+    func testHeaderRateLimitTakesPrecedenceOverBody() async throws {
+        // 同时存在响应头与 body 时，应优先用响应头
+        let body = #"{"status":"error","rate_limit":{"used":10,"quota":100,"reset_at":1}}"#
+        MockURLProtocol.handler = { _ in
+            (429, [
+                "X-Rate-Limit-Limit": "600",
+                "X-Rate-Limit-Remaining": "55",
+            ], Data(body.utf8))
+        }
+
+        do {
+            _ = try await api.hotTopics()
+            XCTFail("should throw")
+        } catch let error as V2exAPIError {
+            XCTAssertEqual(error.rateLimit?.limit, 600, "应优先采用响应头")
+            XCTAssertEqual(error.rateLimit?.remaining, 55)
+        }
+    }
+
     // MARK: - 错误描述
 
     func testErrorDescriptions() {

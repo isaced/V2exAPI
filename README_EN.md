@@ -28,27 +28,37 @@ A [V2ex](https://v2ex.com/) API wrapper for iOS/macOS, built with Swift.
 
 ### V1
 
-| 接口   | 路径                   | 进度  |
-|------|-------------------------|-----|
-| Hottest topic | /api/topics/hot.json    | &#9745; |
-| Latest Topics | /api/topics/latest.json | &#9745; |
-| Node list | /api/nodes/list.json    | &#9745; |
-| Node Info | /api/nodes/show.json    | &#9745; |
-| Profile info | /api/members/show.json  | &#9745; |
-| Replies | /api/replies/show.json  | &#9745; |
+| Endpoint | Path | Token | Done |
+|------|-------------------------|:---:|-----|
+| Hottest topic | /api/topics/hot.json    | ❌ | &#9745; |
+| Latest Topics | /api/topics/latest.json | ❌ | &#9745; |
+| Node list | /api/nodes/list.json    | ❌ | &#9745; |
+| Node Info | /api/nodes/show.json    | ❌ | &#9745; |
+| Profile info | /api/members/show.json  | ❌ | &#9745; |
+| Replies | /api/replies/show.json  | ❌ | &#9745; |
+| Node topics | /api/topics/show.json   | ❌ | &#9745; |
+
+> `nodes/list.json` requires `fields`, `sort_by` **and** `reverse` together;
+> omitting any of them returns `400`. Note that `reverse` has **no effect**
+> on the current server.
 
 ### V2
 
-| 接口            | 路径                           | 进度 |
-|----------------------|--------------------------------|---------|
-| Get the latest notifications       | notifications                  | &#9745; |
-| Delete the specified notification       | notifications/:notification_id | &#9745; |
-| Get your own Profile   | member                         | &#9745; |
-| Get the currently used token   | token                          | &#9745; |
-| get the specified node         | nodes/:node_name               | &#9745; |
-| Get the topics under the specified node | nodes/:node_name/topics        | &#9745; |
-| Get specific topic details         | topics/:topic_id               | &#9745; |
-| Get replies under the specified topic | topics/:topic_id/replies       | &#9745; |
+| Endpoint | Path | Token | Done |
+|----------------------|--------------------------------|:---:|---------|
+| Get the latest notifications       | notifications                  | ✅ | &#9745; |
+| Delete the specified notification       | notifications/:notification_id | ✅ | &#9745; |
+| Get your own Profile   | member                         | ✅ | &#9745; |
+| Get the currently used token   | token                          | ✅ | &#9745; |
+| Create a new token     | token (POST)                   | ✅ | &#9745; |
+| Get the specified node         | nodes/:node_name               | ✅ | &#9745; |
+| Get the topics under the specified node | nodes/:node_name/topics        | ✅ | &#9745; |
+| Get specific topic details         | topics/:topic_id               | ✅ | &#9745; |
+| Get replies under the specified topic | topics/:topic_id/replies       | ✅ | &#9745; |
+
+> **Verified**: every V2 endpoint requires a Personal Access Token —
+> anonymous requests always return `401`, even for read-only routes such as
+> `nodes/:name`. Every V1 endpoint, in contrast, needs no token at all.
 
 ## Installation
 
@@ -147,13 +157,19 @@ v2ex.retryableStatusCodes = [429, 503]  // narrow the retry set
 
 API Rate Limit
 
-By default, each IP is limited to 120 API requests per hour. You can find the Rate Limit information in the HTTP header of the API return result:
+API requests per IP are rate limited (measured at **600** at the time of writing;
+always trust the response headers). The Rate Limit information is available in the
+HTTP response headers:
 
 ```
-X-Rate-Limit-Limit: 120
+X-Rate-Limit-Limit: 600
 X-Rate-Limit-Reset: 1409479200
-X-Rate-Limit-Remaining: 116
+X-Rate-Limit-Remaining: 576
 ```
+
+The library parses these into `V2exAPIError.RateLimit`, and falls back to the
+`rate_limit` object (`used` / `quota` / `reset_at`) in V1 error response bodies
+when those headers are absent.
 
 For API requests that can be cached by the CDN, the Rate Limit quota will only be consumed on the first request.
 

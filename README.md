@@ -26,27 +26,36 @@
 
 ### V1
 
-| 接口   | 路径                   | 进度  |
-|------|-------------------------|-----|
-| 最热主题 | /api/topics/hot.json    | &#9745; |
-| 最新主题 | /api/topics/latest.json | &#9745; |
-| 节点列表 | /api/nodes/list.json    | &#9745; |
-| 节点信息 | /api/nodes/show.json    | &#9745; |
-| 用户主页 | /api/members/show.json  | &#9745; |
-| 回复列表 | /api/replies/show.json  | &#9745; |
+| 接口   | 路径                   | 需要 Token | 进度  |
+|------|-------------------------|:---:|-----|
+| 最热主题 | /api/topics/hot.json    | ❌ | &#9745; |
+| 最新主题 | /api/topics/latest.json | ❌ | &#9745; |
+| 节点列表 | /api/nodes/list.json    | ❌ | &#9745; |
+| 节点信息 | /api/nodes/show.json    | ❌ | &#9745; |
+| 用户主页 | /api/members/show.json  | ❌ | &#9745; |
+| 回复列表 | /api/replies/show.json  | ❌ | &#9745; |
+| 节点主题 | /api/topics/show.json   | ❌ | &#9745; |
+
+> `nodes/list.json` 必须同时提供 `fields`、`sort_by`、`reverse` 三个参数，
+> 缺少任何一个都会返回 `400`。其中 `reverse` 实测在服务端**不生效**。
 
 ### V2
 
-| 接口            | 路径                           | 进度 |
-|----------------------|--------------------------------|---------|
-| 获取最新的提醒       | notifications                  | &#9745; |
-| 删除指定的提醒       | notifications/:notification_id | &#9745; |
-| 获取自己的 Profile   | member                         | &#9745; |
-| 查看当前使用的令牌   | token                          | &#9745; |
-| 获取指定节点         | nodes/:node_name               | &#9745; |
-| 获取指定节点下的主题 | nodes/:node_name/topics        | &#9745; |
-| 获取指定主题         | topics/:topic_id               | &#9745; |
-| 获取指定主题下的回复 | topics/:topic_id/replies       | &#9745; |
+| 接口            | 路径                           | 需要 Token | 进度 |
+|----------------------|--------------------------------|:---:|---------|
+| 获取最新的提醒       | notifications                  | ✅ | &#9745; |
+| 删除指定的提醒       | notifications/:notification_id | ✅ | &#9745; |
+| 获取自己的 Profile   | member                         | ✅ | &#9745; |
+| 查看当前使用的令牌   | token                          | ✅ | &#9745; |
+| 创建新的令牌         | token (POST)                   | ✅ | &#9745; |
+| 获取指定节点         | nodes/:node_name               | ✅ | &#9745; |
+| 获取指定节点下的主题 | nodes/:node_name/topics        | ✅ | &#9745; |
+| 获取指定主题         | topics/:topic_id               | ✅ | &#9745; |
+| 获取指定主题下的回复 | topics/:topic_id/replies       | ✅ | &#9745; |
+
+> **实测结论**：V2 的**全部**接口都强制要求 Personal Access Token，
+> 匿名请求一律返回 `401`（连 `nodes/:name` 这类纯读取接口也不例外）。
+> 与之相对，**V1 的全部接口都无需 Token**。
 
 ## 安装
 
@@ -152,13 +161,17 @@ v2ex.retryableStatusCodes = [429, 503]  // 只想重试这两类
 
 API Rate Limit
 
-默认情况下，每个 IP 每小时可以发起的 API 请求数被限制在 120 次。你可以在 API 返回结果的 HTTP 头部找到 Rate Limit 信息：
+每个 IP 的 API 请求数有配额限制（实测当前为 **600 次**，请以响应头为准）。
+你可以在 API 返回结果的 HTTP 头部找到 Rate Limit 信息：
 
 ```
-X-Rate-Limit-Limit: 120
+X-Rate-Limit-Limit: 600
 X-Rate-Limit-Reset: 1409479200
-X-Rate-Limit-Remaining: 116
+X-Rate-Limit-Remaining: 576
 ```
+
+本库会自动把这些头解析到 `V2exAPIError.RateLimit`，并在 HTTP 响应头缺失时
+回退解析 V1 错误响应体中的 `rate_limit` 对象（`used` / `quota` / `reset_at`）。
 
 对于能够被 CDN 缓存的 API 请求，只有第一次请求时，才会消耗 Rate Limit 配额。
 
