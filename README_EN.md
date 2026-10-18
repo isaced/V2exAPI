@@ -17,6 +17,7 @@ A [V2ex](https://v2ex.com/) API wrapper for iOS/macOS, built with Swift.
 - [x] V2ex API V1 100%
 - [x] V2ex API V2 100%
 - [x] Structured errors via `V2exAPIError` (HTTP status / rate limit / decoding)
+- [x] Built-in exponential backoff retry for 429 / 5xx / flaky connections
 - [x] Zero dependency
 
 ## API Support
@@ -112,6 +113,20 @@ do {
         print(error.localizedDescription)
     }
 }
+```
+
+### Retry
+
+`429` (rate limited) and `5xx` responses are retried with exponential backoff
+(two attempts by default). When `X-Rate-Limit-Reset` is present, it waits until
+the quota resets (capped at 60s). Everything is configurable:
+
+```swift
+var v2ex = V2exAPI(accessToken: "...")
+
+v2ex.maxRetries = 3                     // 0 disables retrying
+v2ex.retryDelay = 1                     // first wait, doubled each retry
+v2ex.retryableStatusCodes = [429, 503]  // narrow the retry set
 ```
 
 ## API Reference

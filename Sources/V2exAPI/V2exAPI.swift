@@ -13,7 +13,18 @@ public struct V2exAPI: Sendable {
      */
     public var accessToken: String?
     public var session = URLSession.shared
-    
+
+    /// 可重试的状态码，命中时按 `maxRetries` 指数退避重试
+    ///
+    /// 默认包含 429（限流）与 5xx，可通过设为空集合关闭重试。
+    public var retryableStatusCodes: Set<Int> = [429, 500, 502, 503, 504]
+
+    /// 最大重试次数，0 表示不重试
+    public var maxRetries: Int = 2
+
+    /// 首次重试的等待时间，后续按 2 的倍数递增
+    public var retryDelay: TimeInterval = 1
+
     public init(accessToken: String? = nil) {
         self.accessToken = accessToken
     }
@@ -67,16 +78,7 @@ public struct V2exAPI: Sendable {
             request.httpBody = try? JSONSerialization.data(withJSONObject: args)
         }
 
-        let data: Data
-        let response: URLResponse
-        do {
-            (data, response) = try await session.data(for: request)
-        } catch {
-            if let error = error as? V2exAPIError {
-                throw error
-            }
-            throw V2exAPIError.network(underlying: error)
-        }
+        let (data, response) = try await perform(request)
 
         if let httpResponse = response as? HTTPURLResponse,
            !(200..<300).contains(httpResponse.statusCode) {
@@ -99,6 +101,67 @@ public struct V2exAPI: Sendable {
             return (obj, response)
         } catch {
             throw V2exAPIError.decoding(underlying: error, body: data)
+        }
+    }
+
+    /**
+     执行请求，对限流与临时性服务端错误做指数退避重试
+     */
+    private func perform(_ request: URLRequest) async throws -> (Data, URLResponse) {
+        var attempt = 0
+        while true {
+            let data: Data
+            let response: URLResponse
+            do {
+                (data, response) = try await session.data(for: request)
+            } catch {
+                if let error = error as? V2exAPIError {
+                    throw error
+                }
+                // 网络层错误同样可重试
+                if attempt < maxRetries, isRetryable(networkError: error) {
+                    try await backoff(attempt: attempt)
+                    attempt += 1
+                    continue
+                }
+                throw V2exAPIError.network(underlying: error)
+            }
+
+            if let httpResponse = response as? HTTPURLResponse,
+               retryableStatusCodes.contains(httpResponse.statusCode),
+               attempt < maxRetries {
+                try await backoff(attempt: attempt, response: httpResponse)
+                attempt += 1
+                continue
+            }
+
+            return (data, response)
+        }
+    }
+
+    /// 指数退避，若服务端给出 X-Rate-Limit-Reset 则优先采用
+    private func backoff(attempt: Int, response: HTTPURLResponse? = nil) async throws {
+        var delay = retryDelay * pow(2, Double(attempt))
+        if let reset = V2exAPIError.intValue(response?.allHeaderFields, "X-Rate-Limit-Reset") {
+            let untilReset = Date(timeIntervalSince1970: TimeInterval(reset)).timeIntervalSinceNow
+            if untilReset > 0 {
+                delay = min(untilReset, 60)
+            }
+        }
+        try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+    }
+
+    /// 判断网络错误是否值得重试（超时、连接中断、DNS 等）
+    private func isRetryable(networkError: Error) -> Bool {
+        guard let urlError = networkError as? URLError else {
+            return false
+        }
+        switch urlError.code {
+        case .timedOut, .networkConnectionLost, .cannotConnectToHost,
+             .notConnectedToInternet, .dnsLookupFailed, .internationalRoamingOff:
+            return true
+        default:
+            return false
         }
     }
 

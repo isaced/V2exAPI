@@ -15,6 +15,7 @@
 - [x] V2ex API V1 支持度 100%
 - [x] V2ex API V2 支持度 100%
 - [x] 结构化错误 `V2exAPIError`（HTTP 状态码 / 限流信息 / 解码失败）
+- [x] 内置指数退避重试（429 / 5xx / 网络抖动，可配置）
 - [x] Zero dependency 零三方依赖
 
 ## API 支持范围
@@ -118,6 +119,19 @@ do {
 if let error = error as? V2exAPIError, error.isUnauthorized {
     // Token 失效，引导用户重新登录
 }
+```
+
+### 重试
+
+默认对 `429`（限流）和 `5xx` 做指数退避重试，最多 2 次；若响应头带
+`X-Rate-Limit-Reset`，会等待到配额重置（上限 60 秒）。可自行调整：
+
+```swift
+var v2ex = V2exAPI(accessToken: "...")
+
+v2ex.maxRetries = 3                 // 最大重试次数，0 表示关闭
+v2ex.retryDelay = 1                 // 首次等待秒数，之后按 2 倍递增
+v2ex.retryableStatusCodes = [429, 503]  // 只想重试这两类
 ```
 
 ## API 参考

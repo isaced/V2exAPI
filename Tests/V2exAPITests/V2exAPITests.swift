@@ -62,6 +62,18 @@ extension MockURLProtocol {
     static func fail(_ statusCode: Int, _ json: String = #"{"message":"error"}"#, headers: [String: String] = [:]) {
         handler = { _ in (statusCode, headers, Data(json.utf8)) }
     }
+
+    /// 按顺序返回多次响应，用于重试测试
+    static func sequence(_ responses: [(Int, [String: String], String)]) {
+        var remaining = responses
+        handler = { _ in
+            guard !remaining.isEmpty else {
+                return (500, [:], Data())
+            }
+            let next = remaining.removeFirst()
+            return (next.0, next.1, Data(next.2.utf8))
+        }
+    }
 }
 
 final class V2exAPITests: XCTestCase {
@@ -73,6 +85,8 @@ final class V2exAPITests: XCTestCase {
         MockURLProtocol.reset()
         api = V2exAPI()
         api.session = MockURLProtocol.makeSession()
+        // 默认关闭重试，避免测试里产生真实等待；重试测试会显式覆盖
+        api.maxRetries = 0
     }
 
     override func tearDown() {
@@ -270,6 +284,65 @@ final class V2exAPITests: XCTestCase {
                 return XCTFail("expected invalidURL, got \(error)")
             }
         }
+    }
+
+    // MARK: - 重试
+
+    func testRetriesRateLimitedRequestAndSucceeds() async throws {
+        api.maxRetries = 2
+        api.retryDelay = 0
+        MockURLProtocol.sequence([
+            (429, ["X-Rate-Limit-Remaining": "0"], #"{"message":"slow down"}"#),
+            (200, [:], #"[{"id":1,"title":"ok"}]"#),
+        ])
+
+        let topics = try await api.hotTopics()
+        XCTAssertEqual(topics.first?.id, 1)
+        XCTAssertEqual(MockURLProtocol.recordedRequests.count, 2)
+    }
+
+    func testDoesNotRetryNonRetryableStatus() async throws {
+        api.retryDelay = 0
+        MockURLProtocol.fail(404)
+
+        do {
+            _ = try await api.hotTopics()
+            XCTFail("should throw")
+        } catch let error as V2exAPIError {
+            XCTAssertEqual(error.statusCode, 404)
+        }
+        // 404 不在重试列表中，只应请求一次
+        XCTAssertEqual(MockURLProtocol.recordedRequests.count, 1)
+    }
+
+    func testRetryCanBeDisabled() async throws {
+        api.maxRetries = 2
+        api.retryDelay = 0
+        api.retryableStatusCodes = []
+        MockURLProtocol.fail(503)
+
+        do {
+            _ = try await api.hotTopics()
+            XCTFail("should throw")
+        } catch let error as V2exAPIError {
+            XCTAssertEqual(error.statusCode, 503)
+        }
+        XCTAssertEqual(MockURLProtocol.recordedRequests.count, 1)
+    }
+
+    func testRetriesExhaustedReturnsLastError() async throws {
+        api.retryDelay = 0
+        api.maxRetries = 2
+        MockURLProtocol.fail(503)
+
+        do {
+            _ = try await api.hotTopics()
+            XCTFail("should throw")
+        } catch let error as V2exAPIError {
+            XCTAssertEqual(error.statusCode, 503)
+        }
+        // 首次 + 2 次重试
+        XCTAssertEqual(MockURLProtocol.recordedRequests.count, 3)
     }
 
     // MARK: - 模型容错
