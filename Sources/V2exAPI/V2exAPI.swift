@@ -189,10 +189,13 @@ public struct V2exAPI {
             args: [
                 "name": name
             ],
-            decodeClass: V2Node.self,
+            decodeClass: SingleOrArray<V2Node>.self,
             endpoint: .v1
         )
-        return data
+        guard let node = data.value else {
+            throw V2exAPIError.apiFailure(message: "node not found: \(name)", response: nil)
+        }
+        return node
     }
 
     /**
@@ -219,10 +222,13 @@ public struct V2exAPI {
         let (data, _) = try await request(
             path: "members/show.json",
             args: args,
-            decodeClass: V2Member.self,
+            decodeClass: SingleOrArray<V2Member>.self,
             endpoint: .v1
         )
-        return data
+        guard let member = data.value else {
+            throw V2exAPIError.apiFailure(message: "member not found", response: nil)
+        }
+        return member
     }
 
     /**
