@@ -361,13 +361,15 @@ public struct V2exAPI: Sendable {
     /**
      删除指定的提醒
 
+     成功时返回 `success: true`，`result` 为空。
+
      - parameter  notificationId: 提醒ID
      */
-    public func deleteNotification(notificationId: Int) async throws -> V2Response<Data?> {
+    public func deleteNotification(notificationId: Int) async throws -> V2Response<V2EmptyResult> {
         let (data, _) = try await request(
             httpMethod: "DELETE",
             path: path("notifications", String(notificationId)),
-            decodeClass: V2Response<Data?>.self
+            decodeClass: V2Response<V2EmptyResult>.self
         )
         return data
     }

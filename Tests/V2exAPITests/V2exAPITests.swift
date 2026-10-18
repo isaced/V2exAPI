@@ -174,8 +174,8 @@ final class V2exAPITests: XCTestCase {
         MockURLProtocol.succeed(#"{"success":true,"message":""}"#)
 
         let response = try await api.deleteNotification(notificationId: 42)
+        // {"success": true} 没有 result 字段，不应被视为失败
         XCTAssertTrue(response.success)
-        XCTAssertNil(response.result ?? nil)
 
         let request = try XCTUnwrap(MockURLProtocol.recordedRequests.first)
         XCTAssertEqual(request.httpMethod, "DELETE")
