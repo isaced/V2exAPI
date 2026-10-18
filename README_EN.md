@@ -22,7 +22,8 @@ A [V2ex](https://v2ex.com/) API wrapper for iOS/macOS, built with Swift.
 - [x] Linux support via `FoundationNetworking`
 - [x] Zero dependency
 
-> Requires Swift 5.9+ (Xcode 15+). Verified on iOS / macOS / tvOS / watchOS / Linux.
+> Requires Swift 5.9+ (Xcode 15+).
+> Platforms: iOS 15+ / macOS 12+ / tvOS 15+ / watchOS 9+ / Linux.
 
 ## API Support
 

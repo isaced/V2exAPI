@@ -20,7 +20,8 @@
 - [x] 支持 Linux（`FoundationNetworking`）
 - [x] Zero dependency 零三方依赖
 
-> 需要 Swift 5.9+（Xcode 15+）工具链。已在 iOS / macOS / tvOS / watchOS / Linux 上验证。
+> 需要 Swift 5.9+（Xcode 15+）工具链。
+> 平台要求：iOS 15+ / macOS 12+ / tvOS 15+ / watchOS 9+ / Linux。
 
 ## API 支持范围
 

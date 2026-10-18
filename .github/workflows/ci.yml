@@ -101,25 +101,28 @@ jobs:
       - name: Build with -strict-concurrency=complete
         run: swift build -Xswiftc -strict-concurrency=complete -Xswiftc -warnings-as-errors
 
-  # 交叉编译：库声明支持 iOS / tvOS / watchOS，必须实际可编译
+  # 交叉编译：库声明支持 iOS / tvOS / watchOS，必须实际可编译。
+  # 同时显式设置最低 deployment target，否则 generic/platform 会用 SDK 默认值，
+  # 声明的下限（如 watchOS 8）坏掉了也发现不了。
   build-platforms:
-    name: Build (${{ matrix.platform }})
+    name: Build (${{ matrix.platform }} ${{ matrix.target }})
     runs-on: macos-14
     strategy:
       fail-fast: false
       matrix:
-        platform:
-          - iOS
-          - tvOS
-          - watchOS
+        include:
+          - { platform: iOS,     target: "15.0", var: "IPHONEOS_DEPLOYMENT_TARGET" }
+          - { platform: tvOS,    target: "15.0", var: "TVOS_DEPLOYMENT_TARGET" }
+          - { platform: watchOS, target: "9.0",  var: "WATCHOS_DEPLOYMENT_TARGET" }
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build for ${{ matrix.platform }} Simulator
+      - name: Build for ${{ matrix.platform }} Simulator (min ${{ matrix.target }})
         run: |
           xcodebuild \
             -scheme V2exAPI \
             -destination "generic/platform=${{ matrix.platform }} Simulator" \
+            ${{ matrix.var }}=${{ matrix.target }} \
             -quiet \
             build
 

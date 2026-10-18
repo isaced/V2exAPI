@@ -7,6 +7,16 @@
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-10-18
+
+### 修复
+
+- **watchOS 最低版本从 8.0 调整为 9.0**：Xcode 26/27 已不再支持 8.0，
+  `Package.swift` 声明 8.0 会导致这些工具链下的 watchOS 构建直接失败。
+  Xcode 15/16 用户不再支持 watchOS 8，请知悉。
+- CI 的 `build-platforms` 现在会显式设置各平台的最低 deployment target，
+  此前用 `generic/platform` 时总是采用 SDK 默认值，导致声明的下限失守也不会被发现。
+
 ## [1.2.0] - 2026-10-18
 
 ### 破坏性变更
@@ -112,7 +122,8 @@
 
 - 首个正式版本，V1 / V2 接口覆盖度 100%。
 
-[Unreleased]: https://github.com/isaced/V2exAPI/compare/1.2.0...HEAD
+[Unreleased]: https://github.com/isaced/V2exAPI/compare/1.2.1...HEAD
+[1.2.1]: https://github.com/isaced/V2exAPI/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/isaced/V2exAPI/compare/1.1.1...1.2.0
 [1.1.1]: https://github.com/isaced/V2exAPI/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/isaced/V2exAPI/compare/1.0.3...1.1.0
