@@ -348,6 +348,19 @@ final class V2exAPITests: XCTestCase {
         XCTAssertEqual(MockURLProtocol.recordedRequests.count, 3)
     }
 
+    // MARK: - 值语义
+
+    func testResponseIsEquatableWhenResultIs() {
+        let a = V2Response(success: true, message: "", result: [V2Topic(id: 1)])
+        let b = V2Response(success: true, message: "", result: [V2Topic(id: 1)])
+        let c = V2Response(success: true, message: "", result: [V2Topic(id: 2)])
+
+        XCTAssertEqual(a, b)
+        XCTAssertNotEqual(a, c)
+        // Hashable 一致性也可用
+        XCTAssertEqual(Set([a, b]).count, 1)
+    }
+
     // MARK: - 模型容错
 
     func testCommentWithoutMemberDecodes() async throws {
