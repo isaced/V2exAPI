@@ -28,15 +28,15 @@ A [V2ex](https://v2ex.com/) API wrapper for iOS/macOS, built with Swift.
 
 ### V1
 
-| Endpoint | Path | Token | Done |
-|------|-------------------------|:---:|-----|
-| Hottest topic | /api/topics/hot.json    | ❌ | &#9745; |
-| Latest Topics | /api/topics/latest.json | ❌ | &#9745; |
-| Node list | /api/nodes/list.json    | ❌ | &#9745; |
-| Node Info | /api/nodes/show.json    | ❌ | &#9745; |
-| Profile info | /api/members/show.json  | ❌ | &#9745; |
-| Replies | /api/replies/show.json  | ❌ | &#9745; |
-| Node topics | /api/topics/show.json   | ❌ | &#9745; |
+| Resource | Method | Endpoint | Token |
+|------|------|------|:---:|
+| Hottest topics | `hotTopics()` | [`/api/topics/hot.json`](https://v2ex.com/api/topics/hot.json) | No |
+| Latest topics | `latestTopics()` | [`/api/topics/latest.json`](https://v2ex.com/api/topics/latest.json) | No |
+| Node list | `nodesList(fields:sortBy:reverse:)` | [`/api/nodes/list.json`](https://v2ex.com/api/nodes/list.json) | No |
+| Node info | `nodesShow(name:)` | [`/api/nodes/show.json`](https://v2ex.com/api/nodes/show.json) | No |
+| Member profile | `memberShow(username:id:)` | [`/api/members/show.json`](https://v2ex.com/api/members/show.json) | No |
+| Replies | `repliesAll(topicId:)` | [`/api/replies/show.json`](https://v2ex.com/api/replies/show.json) | No |
+| Node topics | `nodeTopics(nodeName:)` | [`/api/topics/show.json`](https://v2ex.com/api/topics/show.json) | No |
 
 > `nodes/list.json` requires `fields`, `sort_by` **and** `reverse` together;
 > omitting any of them returns `400`. Note that `reverse` has **no effect**
@@ -44,17 +44,17 @@ A [V2ex](https://v2ex.com/) API wrapper for iOS/macOS, built with Swift.
 
 ### V2
 
-| Endpoint | Path | Token | Done |
-|----------------------|--------------------------------|:---:|---------|
-| Get the latest notifications       | notifications                  | ✅ | &#9745; |
-| Delete the specified notification       | notifications/:notification_id | ✅ | &#9745; |
-| Get your own Profile   | member                         | ✅ | &#9745; |
-| Get the currently used token   | token                          | ✅ | &#9745; |
-| Create a new token     | token (POST)                   | ✅ | &#9745; |
-| Get the specified node         | nodes/:node_name               | ✅ | &#9745; |
-| Get the topics under the specified node | nodes/:node_name/topics        | ✅ | &#9745; |
-| Get specific topic details         | topics/:topic_id               | ✅ | &#9745; |
-| Get replies under the specified topic | topics/:topic_id/replies       | ✅ | &#9745; |
+| Resource | Method | Endpoint | Token |
+|------|------|------|:---:|
+| Latest notifications | `notifications(page:)` | [`/notifications`](https://www.v2ex.com/api/v2/notifications) | Yes |
+| Delete a notification | `deleteNotification(notificationId:)` | [`/notifications/:id`](https://www.v2ex.com/api/v2/notifications) | Yes |
+| Own profile | `member()` | [`/member`](https://www.v2ex.com/api/v2/member) | Yes |
+| Current token | `token()` | [`/token`](https://www.v2ex.com/api/v2/token) | Yes |
+| Create a token | `createToken(expiration:scope:)` | `/token` (POST) | Yes |
+| Single node | `getNode(nodeName:)` | `/nodes/:node_name` | Yes |
+| Topics in a node | `topics(nodeName:page:)` | `/nodes/:node_name/topics` | Yes |
+| Single topic | `topic(topicId:)` | `/topics/:topic_id` | Yes |
+| Replies of a topic | `replies(topicId:page:)` | `/topics/:topic_id/replies` | Yes |
 
 > **Verified**: every V2 endpoint requires a Personal Access Token —
 > anonymous requests always return `401`, even for read-only routes such as

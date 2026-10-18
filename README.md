@@ -26,32 +26,32 @@
 
 ### V1
 
-| 接口   | 路径                   | 需要 Token | 进度  |
-|------|-------------------------|:---:|-----|
-| 最热主题 | /api/topics/hot.json    | ❌ | &#9745; |
-| 最新主题 | /api/topics/latest.json | ❌ | &#9745; |
-| 节点列表 | /api/nodes/list.json    | ❌ | &#9745; |
-| 节点信息 | /api/nodes/show.json    | ❌ | &#9745; |
-| 用户主页 | /api/members/show.json  | ❌ | &#9745; |
-| 回复列表 | /api/replies/show.json  | ❌ | &#9745; |
-| 节点主题 | /api/topics/show.json   | ❌ | &#9745; |
+| 接口 | 方法 | 端点 | 需要 Token |
+|------|------|------|:---:|
+| 最热主题 | `hotTopics()` | [`/api/topics/hot.json`](https://v2ex.com/api/topics/hot.json) | 否 |
+| 最新主题 | `latestTopics()` | [`/api/topics/latest.json`](https://v2ex.com/api/topics/latest.json) | 否 |
+| 节点列表 | `nodesList(fields:sortBy:reverse:)` | [`/api/nodes/list.json`](https://v2ex.com/api/nodes/list.json) | 否 |
+| 节点信息 | `nodesShow(name:)` | [`/api/nodes/show.json`](https://v2ex.com/api/nodes/show.json) | 否 |
+| 用户主页 | `memberShow(username:id:)` | [`/api/members/show.json`](https://v2ex.com/api/members/show.json) | 否 |
+| 回复列表 | `repliesAll(topicId:)` | [`/api/replies/show.json`](https://v2ex.com/api/replies/show.json) | 否 |
+| 节点主题 | `nodeTopics(nodeName:)` | [`/api/topics/show.json`](https://v2ex.com/api/topics/show.json) | 否 |
 
 > `nodes/list.json` 必须同时提供 `fields`、`sort_by`、`reverse` 三个参数，
 > 缺少任何一个都会返回 `400`。其中 `reverse` 实测在服务端**不生效**。
 
 ### V2
 
-| 接口            | 路径                           | 需要 Token | 进度 |
-|----------------------|--------------------------------|:---:|---------|
-| 获取最新的提醒       | notifications                  | ✅ | &#9745; |
-| 删除指定的提醒       | notifications/:notification_id | ✅ | &#9745; |
-| 获取自己的 Profile   | member                         | ✅ | &#9745; |
-| 查看当前使用的令牌   | token                          | ✅ | &#9745; |
-| 创建新的令牌         | token (POST)                   | ✅ | &#9745; |
-| 获取指定节点         | nodes/:node_name               | ✅ | &#9745; |
-| 获取指定节点下的主题 | nodes/:node_name/topics        | ✅ | &#9745; |
-| 获取指定主题         | topics/:topic_id               | ✅ | &#9745; |
-| 获取指定主题下的回复 | topics/:topic_id/replies       | ✅ | &#9745; |
+| 接口 | 方法 | 端点 | 需要 Token |
+|------|------|------|:---:|
+| 获取最新的提醒 | `notifications(page:)` | [`/notifications`](https://www.v2ex.com/api/v2/notifications) | 是 |
+| 删除指定的提醒 | `deleteNotification(notificationId:)` | [`/notifications/:id`](https://www.v2ex.com/api/v2/notifications) | 是 |
+| 获取自己的 Profile | `member()` | [`/member`](https://www.v2ex.com/api/v2/member) | 是 |
+| 查看当前使用的令牌 | `token()` | [`/token`](https://www.v2ex.com/api/v2/token) | 是 |
+| 创建新的令牌 | `createToken(expiration:scope:)` | `/token` (POST) | 是 |
+| 获取指定节点 | `getNode(nodeName:)` | `/nodes/:node_name` | 是 |
+| 获取指定节点下的主题 | `topics(nodeName:page:)` | `/nodes/:node_name/topics` | 是 |
+| 获取指定主题 | `topic(topicId:)` | `/topics/:topic_id` | 是 |
+| 获取指定主题下的回复 | `replies(topicId:page:)` | `/topics/:topic_id/replies` | 是 |
 
 > **实测结论**：V2 的**全部**接口都强制要求 Personal Access Token，
 > 匿名请求一律返回 `401`（连 `nodes/:name` 这类纯读取接口也不例外）。
