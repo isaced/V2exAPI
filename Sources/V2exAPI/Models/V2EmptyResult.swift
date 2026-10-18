@@ -13,7 +13,7 @@ public struct V2EmptyResult: Decodable, Hashable, Sendable {
 
     public init() {}
 
-    public init(from decoder: Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         // 接受任意形态（object / null / 缺失），仅用于表达「无返回体」
     }
 }

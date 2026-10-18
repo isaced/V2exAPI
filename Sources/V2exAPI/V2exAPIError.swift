@@ -27,13 +27,13 @@ public enum V2exAPIError: Error, LocalizedError {
     case http(statusCode: Int, message: String?, rateLimit: RateLimit?, response: URLResponse?)
 
     /// 响应体无法解码为期望的模型
-    case decoding(underlying: Error, body: Data?)
+    case decoding(underlying: any Error, body: Data?)
 
     /// V2 接口返回 `success: false`
     case apiFailure(message: String?, response: URLResponse?)
 
     /// 网络层错误（无网络、超时、TLS 失败等）
-    case network(underlying: Error)
+    case network(underlying: any Error)
 
     public var errorDescription: String? {
         switch self {

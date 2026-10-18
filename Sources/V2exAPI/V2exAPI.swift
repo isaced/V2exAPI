@@ -183,7 +183,7 @@ public struct V2exAPI: @unchecked Sendable {
     }
 
     /// 判断网络错误是否值得重试（超时、连接中断、DNS 等）
-    private func isRetryable(networkError: Error) -> Bool {
+    private func isRetryable(networkError: any Error) -> Bool {
         guard let urlError = networkError as? URLError else {
             return false
         }

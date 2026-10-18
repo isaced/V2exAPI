@@ -16,7 +16,7 @@ struct SingleOrArray<T: Decodable>: Decodable {
 
     let value: T?
 
-    init(from decoder: Decoder) throws {
+    init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()
 
         if let array = try? container.decode([T].self) {
