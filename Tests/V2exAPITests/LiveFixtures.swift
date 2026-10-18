@@ -141,4 +141,203 @@ enum LiveFixtures {
   "status": "found"
 }
 """#
+
+    // MARK: - V2 真实响应（单条、已脱敏）
+
+    /// GET /api/v2/topics/:id
+    static let v2Topic = #"""
+{
+  "success": true,
+  "message": "Topic details found",
+  "result": {
+    "id": 1000,
+    "title": "Google App Engine x MobileMe",
+    "content": "从现在开始，新上传到 V2EX 的头像将存储在 MobileMe iDisk 中。这是 V2EX 到目前为之所用到的第三个云。\r\n\r\n得益于这个架构升级，现在头像上传之后，将立刻在全站的所有页面更新。",
+    "content_rendered": "从现在开始，新上传到 V2EX 的头像将存储在 MobileMe iDisk 中。这是 V2EX 到目前为之所用到的第三个云。\r\n<br />\r\n<br />得益于这个架构升级，现在头像上传之后，将立刻在全站的所有页面更新。",
+    "syntax": 0,
+    "url": "https://example.com",
+    "replies": 14,
+    "stars": 0,
+    "thanks": 0,
+    "last_reply_by": "user-redacted",
+    "created": 1280192329,
+    "last_modified": 1335004238,
+    "last_touched": 1280285385,
+    "member": {
+      "id": 1,
+      "username": "user-redacted",
+      "bio": "",
+      "website": "sepia.sol.build",
+      "github": "",
+      "url": "https://example.com",
+      "avatar": "https://example.com/avatar.png",
+      "created": 1272203146,
+      "pro": 1792299120
+    },
+    "node": {
+      "id": 1,
+      "founder_id": 0,
+      "url": "https://example.com",
+      "name": "babel",
+      "title": "Project Babel",
+      "header": "",
+      "footer": "",
+      "avatar": "https://example.com/avatar.png",
+      "topics": 1123,
+      "created": 1272206882,
+      "last_modified": 1700044199
+    },
+    "supplements": []
+  }
+}
+"""#
+
+    /// GET /api/v2/nodes/:name
+    static let v2Node = #"""
+{
+  "success": true,
+  "message": "Node details found",
+  "result": {
+    "id": 638,
+    "founder_id": 0,
+    "url": "https://example.com",
+    "name": "swift",
+    "title": "Swift",
+    "header": "来自 Apple 的类型安全的编程语言。",
+    "footer": "",
+    "avatar": "https://example.com/avatar.png",
+    "topics": 372,
+    "created": 1355384712,
+    "last_modified": 1661630260
+  }
+}
+"""#
+
+    /// GET /api/v2/nodes/:name/topics（含 pagination）
+    static let v2NodeTopics = #"""
+{
+  "success": true,
+  "message": "Node topics found",
+  "result": [
+    {
+      "id": 1243658,
+      "title": "我开源了一个 Swift 下的 Markdown 解析器和渲染器，如果你的项目中需要解析 Markdown，可以试试",
+      "content": "代码在： https://github.com/daqing/danbo-swift-markdown",
+      "content_rendered": "<p>代码在： <a href=\"https://github.com/daqing/danbo-swift-markdown\" rel=\"nofollow\">https://github.com/daqing/danbo-swift-markdown</a></p>\n",
+      "syntax": 1,
+      "url": "https://example.com",
+      "replies": 2,
+      "stars": 1,
+      "thanks": 0,
+      "last_reply_by": "user-redacted",
+      "created": 1789974967,
+      "last_modified": 1789975036,
+      "last_touched": 1790522019
+    }
+  ],
+  "pagination": {
+    "per_page": 20,
+    "total": 372,
+    "pages": 19
+  }
+}
+"""#
+
+    /// GET /api/v2/topics/:id/replies（含 pagination）
+    static let v2Replies = #"""
+{
+  "success": true,
+  "message": "Topic replies found",
+  "result": [
+    {
+      "id": 6847,
+      "content": "右下角的图标该变成三个了。 ^^",
+      "content_rendered": "右下角的图标该变成三个了。 ^^",
+      "created": 1280192713,
+      "member": {
+        "id": 123,
+        "username": "user-redacted",
+        "bio": "",
+        "website": "",
+        "github": "romoo",
+        "url": "https://example.com",
+        "avatar": "https://example.com/avatar.png",
+        "created": 1272264436,
+        "pro": 0
+      }
+    }
+  ],
+  "pagination": {
+    "per_page": 20,
+    "total": 14,
+    "pages": 1
+  }
+}
+"""#
+
+    /// GET /api/v2/member
+    static let v2Member = #"""
+{
+  "success": true,
+  "result": {
+    "id": 42376,
+    "username": "user-redacted",
+    "url": "https://example.com",
+    "website": "www.isaced.com",
+    "twitter": "isacedx",
+    "psn": "",
+    "github": "isaced",
+    "btc": "",
+    "location": "",
+    "tagline": "",
+    "bio": "",
+    "avatar_mini": "https://example.com/avatar.png",
+    "avatar_normal": "https://example.com/avatar.png",
+    "avatar_large": "https://example.com/avatar.png",
+    "created": 1374317846,
+    "last_modified": 1664252897,
+    "pro": 0
+  }
+}
+"""#
+
+    /// GET /api/v2/token
+    static let v2Token = #"""
+{
+  "success": true,
+  "message": "Current token details",
+  "result": {
+    "token": "REDACTED-TOKEN",
+    "scope": "everything",
+    "expiration": 2592000,
+    "good_for_days": 30,
+    "total_used": 13,
+    "last_used": 1792303234,
+    "created": 1792302304
+  }
+}
+"""#
+
+    /// GET /api/v2/notifications
+    static let v2Notifications = #"""
+{
+  "success": true,
+  "message": "Notifications 1-10/410",
+  "result": [
+    {
+      "id": 28177232,
+      "member_id": 348660,
+      "for_member_id": 42376,
+      "text": "<a href=\"/member/hannibalaikete\" target=\"_blank\"><strong>hannibalaikete</strong></a> 收藏了你发布的主题 › <a href=\"/t/883252#reply72\" class=\"topic-link\">V2exOS - 用 SwiftUI 写了一个 V2EX 客户端</a>",
+      "payload": null,
+      "payload_rendered": "",
+      "created": 1786422119,
+      "member": {
+        "username": "user-redacted"
+      }
+    }
+  ]
+}
+"""#
+
 }

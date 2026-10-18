@@ -38,6 +38,14 @@ public struct V2Topic: Identifiable, Decodable, Hashable, Sendable {
     public let lastModified: Int?
     /// 回复数
     public let replies: Int?
+    /// 正文所使用的语法标记（V2 独有，1 表示支持 Markdown）
+    public let syntax: Int?
+    /// 星标数（V2 独有）
+    public let stars: Int?
+    /// 感谢数（V2 独有）
+    public let thanks: Int?
+    /// 附言列表（V2 独有）
+    public let supplements: [Supplement]?
 
     /// 手动构造，主要便于测试与 Mock
     public init(
@@ -53,7 +61,11 @@ public struct V2Topic: Identifiable, Decodable, Hashable, Sendable {
         content: String? = nil,
         contentRendered: String? = nil,
         lastModified: Int? = nil,
-        replies: Int? = nil
+        replies: Int? = nil,
+        syntax: Int? = nil,
+        stars: Int? = nil,
+        thanks: Int? = nil,
+        supplements: [Supplement]? = nil
     ) {
         self.id = id
         self.node = node
@@ -68,6 +80,10 @@ public struct V2Topic: Identifiable, Decodable, Hashable, Sendable {
         self.contentRendered = contentRendered
         self.lastModified = lastModified
         self.replies = replies
+        self.syntax = syntax
+        self.stars = stars
+        self.thanks = thanks
+        self.supplements = supplements
     }
 
     enum CodingKeys: String, CodingKey {
@@ -78,5 +94,32 @@ public struct V2Topic: Identifiable, Decodable, Hashable, Sendable {
         case contentRendered = "content_rendered"
         case lastModified = "last_modified"
         case replies, id
+        case syntax, stars, thanks, supplements
+    }
+}
+
+extension V2Topic {
+    /// 主题附言（V2 独有）
+    public struct Supplement: Decodable, Hashable, Sendable {
+        /// 附言 ID
+        public let id: Int?
+        /// 附言原文
+        public let content: String?
+        /// 附言渲染后的 HTML
+        public let contentRendered: String?
+        /// 创建时间（Unix 时间戳，秒）
+        public let created: Int?
+
+        public init(id: Int? = nil, content: String? = nil, contentRendered: String? = nil, created: Int? = nil) {
+            self.id = id
+            self.content = content
+            self.contentRendered = contentRendered
+            self.created = created
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case id, content, created
+            case contentRendered = "content_rendered"
+        }
     }
 }

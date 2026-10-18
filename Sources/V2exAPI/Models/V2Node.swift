@@ -45,6 +45,12 @@ public struct V2Node: Identifiable, Decodable, Hashable, Sendable {
     public let parentNodeName: String?
     /// 节点创建者 ID（0 表示官方创建）
     public let founderId: Int?
+    /// 头像（V2 接口返回的单一 avatar 字段）
+    public let avatar: String?
+    /// 节点创建时间（Unix 时间戳，秒，V2 独有）
+    public let created: Int?
+    /// 节点最后修改时间（Unix 时间戳，秒，V2 独有）
+    public let lastModified: Int?
 
     /// 手动构造，主要便于测试与 Mock
     public init(
@@ -63,7 +69,10 @@ public struct V2Node: Identifiable, Decodable, Hashable, Sendable {
         root: Bool? = nil,
         id: Int? = nil,
         parentNodeName: String? = nil,
-        founderId: Int? = nil
+        founderId: Int? = nil,
+        avatar: String? = nil,
+        created: Int? = nil,
+        lastModified: Int? = nil
     ) {
         self.name = name
         self.avatarLarge = avatarLarge
@@ -81,6 +90,9 @@ public struct V2Node: Identifiable, Decodable, Hashable, Sendable {
         self.id = id
         self.parentNodeName = parentNodeName
         self.founderId = founderId
+        self.avatar = avatar
+        self.created = created
+        self.lastModified = lastModified
     }
 
     enum CodingKeys: String, CodingKey {
@@ -91,5 +103,7 @@ public struct V2Node: Identifiable, Decodable, Hashable, Sendable {
         case avatarMini = "avatar_mini"
         case parentNodeName = "parent_node_name"
         case founderId = "founder_id"
+        case lastModified = "last_modified"
+        case avatar, created
     }
 }

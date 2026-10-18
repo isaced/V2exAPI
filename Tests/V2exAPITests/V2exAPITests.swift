@@ -708,6 +708,30 @@ final class V2exAPITests: XCTestCase {
         XCTAssertEqual(items.first { $0.name == "p" }?.value, "3")
     }
 
+    // MARK: - 分页透传
+
+    func testTopicsExposePagination() async throws {
+        api.accessToken = "T"
+        MockURLProtocol.succeed(#"""
+        {"success":true,"message":"","pagination":{"per_page":20,"total":372,"pages":19},"result":[]}
+        """#)
+
+        let response = try await api.topics(nodeName: "swift", page: 2)
+        XCTAssertEqual(response.pagination?.perPage, 20)
+        XCTAssertEqual(response.pagination?.total, 372)
+        XCTAssertEqual(response.pagination?.pages, 19)
+    }
+
+    func testRepliesExposePagination() async throws {
+        api.accessToken = "T"
+        MockURLProtocol.succeed(#"""
+        {"success":true,"message":"","pagination":{"per_page":20,"total":14,"pages":1},"result":[]}
+        """#)
+
+        let response = try await api.replies(topicId: 1000)
+        XCTAssertEqual(response.pagination?.pages, 1)
+    }
+
     // MARK: - 边缘分支
 
     func testAPIFailureMessageFromBodyWhenNoMessageField() async throws {
