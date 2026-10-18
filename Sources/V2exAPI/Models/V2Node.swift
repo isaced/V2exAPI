@@ -43,6 +43,8 @@ public struct V2Node: Identifiable, Decodable, Hashable, Sendable {
     public let root: Bool?
     /// 父节点名（存在父子关系时）
     public let parentNodeName: String?
+    /// 节点创建者 ID（0 表示官方创建）
+    public let founderId: Int?
 
     /// 手动构造，主要便于测试与 Mock
     public init(
@@ -60,7 +62,8 @@ public struct V2Node: Identifiable, Decodable, Hashable, Sendable {
         aliases: [String]? = nil,
         root: Bool? = nil,
         id: Int? = nil,
-        parentNodeName: String? = nil
+        parentNodeName: String? = nil,
+        founderId: Int? = nil
     ) {
         self.name = name
         self.avatarLarge = avatarLarge
@@ -77,6 +80,7 @@ public struct V2Node: Identifiable, Decodable, Hashable, Sendable {
         self.root = root
         self.id = id
         self.parentNodeName = parentNodeName
+        self.founderId = founderId
     }
 
     enum CodingKeys: String, CodingKey {
@@ -86,5 +90,6 @@ public struct V2Node: Identifiable, Decodable, Hashable, Sendable {
         case titleAlternative = "title_alternative"
         case avatarMini = "avatar_mini"
         case parentNodeName = "parent_node_name"
+        case founderId = "founder_id"
     }
 }

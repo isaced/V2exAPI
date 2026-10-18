@@ -110,6 +110,30 @@ public enum V2exAPIError: Error, LocalizedError {
             self.init(limit: limit, remaining: remaining, reset: reset)
         }
 
+        /// 从 V1 错误响应体中的 `rate_limit` 对象解析
+        ///
+        /// V1 在 404 等错误时会在 body 里返回：
+        /// `{"status":"error","message":"...","rate_limit":{"used":29,"quota":600,"reset_at":...}}`
+        /// - Parameter body: 原始响应体
+        public init?(body: Data) {
+            guard let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+                  let rate = object["rate_limit"] as? [String: Any] else {
+                return nil
+            }
+            let quota = rate["quota"] as? Int
+            let used = rate["used"] as? Int
+            let resetAt = rate["reset_at"] as? Int
+
+            if quota == nil && used == nil && resetAt == nil {
+                return nil
+            }
+            self.init(
+                limit: quota,
+                remaining: used.map { max(0, (quota ?? 0) - $0) },
+                reset: resetAt.map { Date(timeIntervalSince1970: TimeInterval($0)) }
+            )
+        }
+
         /// 便于日志输出的文本形式
         public var description: String {
             "RateLimit(limit: \(limit.map(String.init) ?? "-"), remaining: \(remaining.map(String.init) ?? "-"), reset: \(reset.map { ISO8601DateFormatter().string(from: $0) } ?? "-"))"

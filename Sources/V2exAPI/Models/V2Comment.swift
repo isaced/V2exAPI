@@ -23,13 +23,22 @@ public struct V2Comment: Identifiable, Decodable, Hashable, Sendable {
     public let contentRendered: String?
     /// 创建时间（Unix 时间戳，秒）
     public let created: Int?
-    /// 回复者
+    /// 回复者（可能因用户注销而缺失）
     public let member: V2Member?
+    /// 所属主题 ID
+    public let topicId: Int?
+    /// 回复者 ID
+    public let memberId: Int?
+    /// 最后修改时间（Unix 时间戳，秒）
+    public let lastModified: Int?
 
     enum CodingKeys: String, CodingKey {
         case id, content
         case contentRendered = "content_rendered"
         case created, member
+        case topicId = "topic_id"
+        case memberId = "member_id"
+        case lastModified = "last_modified"
     }
 
     /// 手动构造，主要便于测试与 Mock
@@ -38,12 +47,18 @@ public struct V2Comment: Identifiable, Decodable, Hashable, Sendable {
         content: String? = nil,
         contentRendered: String? = nil,
         created: Int? = nil,
-        member: V2Member? = nil
+        member: V2Member? = nil,
+        topicId: Int? = nil,
+        memberId: Int? = nil,
+        lastModified: Int? = nil
     ) {
         self.id = id
         self.content = content
         self.contentRendered = contentRendered
         self.created = created
         self.member = member
+        self.topicId = topicId
+        self.memberId = memberId
+        self.lastModified = lastModified
     }
 }

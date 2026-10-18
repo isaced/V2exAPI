@@ -111,10 +111,13 @@ public struct V2exAPI: @unchecked Sendable {
                let body = try? JSONDecoder().decode(V2exAPIFailure.self, from: data) {
                 message = body.message
             }
+            // 优先用响应头；V1 的错误会把限流信息放在 body 里，作为回退
+            let rateLimit = V2exAPIError.rateLimit(from: httpResponse)
+                ?? V2exAPIError.RateLimit(body: data)
             throw V2exAPIError.http(
                 statusCode: httpResponse.statusCode,
                 message: message,
-                rateLimit: V2exAPIError.rateLimit(from: httpResponse),
+                rateLimit: rateLimit,
                 response: httpResponse
             )
         }
@@ -240,6 +243,13 @@ public struct V2exAPI: @unchecked Sendable {
     // =========== Others ===========
 
     /// 获取节点列表
+    ///
+    /// - Parameters:
+    ///   - fields: 需要返回的字段，nil 时使用 `id,name,title,topics,aliases`
+    ///   - sortBy: 排序字段，如 `topics`、`id`、`name`
+    ///   - reverse: 是否倒序。**注意**：实测该参数在当前服务端无效，
+    ///     返回结果始终为降序；保留参数以兼容旧调用方。
+    /// - Note: 公开接口，**无需**访问令牌。此方法始终以匿名方式请求。
     /// - Note: 公开接口，**无需**访问令牌。此方法始终以匿名方式请求。
     public func nodesList(fields: [String]? = nil, sortBy: String = "topics", reverse: String = "1") async throws -> [V2Node] {
         let fieldsList = fields ?? ["id", "name", "title", "topics", "aliases"]

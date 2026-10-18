@@ -46,6 +46,10 @@ public struct V2Member: Decodable, Hashable, Sendable {
     public var created: Int?
     /// 资料最后修改时间（Unix 时间戳，秒）
     public var lastModified: Int?
+    /// 是否为 Pro 会员（1 表示是）
+    public var pro: Int?
+    /// 账号状态，如 `active`
+    public var status: String?
 
     /// 手动构造，主要便于测试与 Mock
     public init(
@@ -65,7 +69,9 @@ public struct V2Member: Decodable, Hashable, Sendable {
         avatarNormal: String? = nil,
         avatarLarge: String? = nil,
         created: Int? = nil,
-        lastModified: Int? = nil
+        lastModified: Int? = nil,
+        pro: Int? = nil,
+        status: String? = nil
     ) {
         self.id = id
         self.username = username
@@ -84,10 +90,12 @@ public struct V2Member: Decodable, Hashable, Sendable {
         self.avatarLarge = avatarLarge
         self.created = created
         self.lastModified = lastModified
+        self.pro = pro
+        self.status = status
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, username, url, website, twitter, psn, github, btc, location, tagline, bio, created, avatar
+        case id, username, url, website, twitter, psn, github, btc, location, tagline, bio, created, pro, status
         case avatarMini = "avatar_mini"
         case avatarNormal = "avatar_normal"
         case avatarLarge = "avatar_large"
