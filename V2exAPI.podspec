@@ -24,5 +24,6 @@ Pod::Spec.new do |spec|
   spec.source_files  = ["Sources/**/*.swift"]
   spec.frameworks    = "Foundation"
 
-  spec.swift_versions = ['5.6', '5.7', '5.8', '5.9', '6.0']
+  # swift-tools-version 5.9：需要 Xcode 15 / Swift 5.9 及以上工具链
+  spec.swift_versions = ['5.9', '6.0']
 end

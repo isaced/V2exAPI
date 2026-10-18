@@ -18,7 +18,10 @@ A [V2ex](https://v2ex.com/) API wrapper for iOS/macOS, built with Swift.
 - [x] V2ex API V2 100%
 - [x] Structured errors via `V2exAPIError` (HTTP status / rate limit / decoding)
 - [x] Built-in exponential backoff retry for 429 / 5xx / flaky connections
+- [x] Linux support via `FoundationNetworking`
 - [x] Zero dependency
+
+> Requires Swift 5.9+ (Xcode 15+). Verified on iOS / macOS / tvOS / watchOS / Linux.
 
 ## API Support
 

@@ -16,7 +16,10 @@
 - [x] V2ex API V2 支持度 100%
 - [x] 结构化错误 `V2exAPIError`（HTTP 状态码 / 限流信息 / 解码失败）
 - [x] 内置指数退避重试（429 / 5xx / 网络抖动，可配置）
+- [x] 支持 Linux（`FoundationNetworking`）
 - [x] Zero dependency 零三方依赖
+
+> 需要 Swift 5.9+（Xcode 15+）工具链。已在 iOS / macOS / tvOS / watchOS / Linux 上验证。
 
 ## API 支持范围
 
