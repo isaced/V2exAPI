@@ -405,6 +405,316 @@ final class V2exAPITests: XCTestCase {
         XCTAssertEqual(MockURLProtocol.recordedRequests.count, 3)
     }
 
+    // MARK: - 网络错误重试
+
+    func testRetriesOnTimedOut() async throws {
+        api.maxRetries = 2
+        api.retryDelay = 0
+
+        var calls = 0
+        MockURLProtocol.handler = { _ in
+            calls += 1
+            if calls == 1 {
+                throw URLError(.timedOut)
+            }
+            return (200, [:], Data(#"[{"id":1,"title":"ok"}]"#.utf8))
+        }
+
+        let topics = try await api.hotTopics()
+        XCTAssertEqual(topics.first?.id, 1)
+        XCTAssertEqual(calls, 2, "超时应重试一次后成功")
+    }
+
+    func testRetriesOnConnectionLost() async throws {
+        api.maxRetries = 1
+        api.retryDelay = 0
+
+        var calls = 0
+        MockURLProtocol.handler = { _ in
+            calls += 1
+            if calls == 1 { throw URLError(.networkConnectionLost) }
+            return (200, [:], Data("[]".utf8))
+        }
+
+        _ = try await api.hotTopics()
+        XCTAssertEqual(calls, 2)
+    }
+
+    func testDoesNotRetryCertificateErrors() async throws {
+        api.maxRetries = 3
+        api.retryDelay = 0
+
+        var calls = 0
+        MockURLProtocol.handler = { _ in
+            calls += 1
+            throw URLError(.serverCertificateUntrusted)
+        }
+
+        do {
+            _ = try await api.hotTopics()
+            XCTFail("should throw")
+        } catch let error as V2exAPIError {
+            guard case .network = error else {
+                return XCTFail("expected network error, got \(error)")
+            }
+        }
+        XCTAssertEqual(calls, 1, "证书错误不应重试")
+    }
+
+    func testTimedOutExhaustsRetriesThenThrows() async throws {
+        api.maxRetries = 2
+        api.retryDelay = 0
+
+        var calls = 0
+        MockURLProtocol.handler = { _ in
+            calls += 1
+            throw URLError(.timedOut)
+        }
+
+        do {
+            _ = try await api.hotTopics()
+            XCTFail("should throw")
+        } catch let error as V2exAPIError {
+            guard case let .network(underlying) = error else {
+                return XCTFail("expected network error")
+            }
+            XCTAssertEqual((underlying as? URLError)?.code, .timedOut)
+        }
+        XCTAssertEqual(calls, 3, "首次 + 2 次重试")
+    }
+
+    func testRateLimitResetHeaderIsHonoured() async throws {
+        api.maxRetries = 1
+        api.retryDelay = 0
+
+        // reset 设为过去的时间：距离重置已过，应退回 retryDelay 而立即重试。
+        // 这样既能覆盖 X-Rate-Limit-Reset 的解析分支，又不会真的等待。
+        let past = Int(Date().timeIntervalSince1970) - 60
+        var calls = 0
+        MockURLProtocol.handler = { _ in
+            calls += 1
+            if calls == 1 {
+                return (429, ["X-Rate-Limit-Reset": "\(past)"],
+                        Data(#"{"message":"slow down"}"#.utf8))
+            }
+            return (200, [:], Data("[]".utf8))
+        }
+
+        let start = Date()
+        _ = try await api.hotTopics()
+        let elapsed = Date().timeIntervalSince(start)
+
+        XCTAssertEqual(calls, 2)
+        XCTAssertLessThan(elapsed, 2, "reset 已过期时不应长时间等待")
+    }
+
+    func testBackoffGrowsExponentiallyWithoutResetHeader() async throws {
+        api.maxRetries = 2
+        api.retryDelay = 0.05
+
+        var calls = 0
+        MockURLProtocol.handler = { _ in
+            calls += 1
+            if calls < 3 {
+                return (503, [:], Data())
+            }
+            return (200, [:], Data("[]".utf8))
+        }
+
+        let start = Date()
+        _ = try await api.hotTopics()
+        let elapsed = Date().timeIntervalSince(start)
+
+        // 第一次等 0.05，第二次等 0.1，合计约 0.15
+        XCTAssertEqual(calls, 3)
+        XCTAssertGreaterThan(elapsed, 0.1, "应按指数退避")
+        XCTAssertLessThan(elapsed, 1.0)
+    }
+
+    func testNonURLErrorIsNotRetried() async throws {
+        api.maxRetries = 3
+        api.retryDelay = 0
+
+        struct CustomError: Error {}
+        var calls = 0
+        MockURLProtocol.handler = { _ in
+            calls += 1
+            throw CustomError()
+        }
+
+        do {
+            _ = try await api.hotTopics()
+            XCTFail("should throw")
+        } catch let error as V2exAPIError {
+            guard case .network = error else {
+                return XCTFail("expected network error")
+            }
+        }
+        XCTAssertEqual(calls, 1, "非 URLError 不应重试")
+    }
+
+    // MARK: - 错误描述
+
+    func testErrorDescriptions() {
+        XCTAssertTrue(V2exAPIError.invalidURL("x").localizedDescription.contains("invalid URL"))
+
+        let withMessage = V2exAPIError.http(statusCode: 401, message: "bad token", rateLimit: nil, response: nil)
+        XCTAssertTrue(withMessage.localizedDescription.contains("401"))
+        XCTAssertTrue(withMessage.localizedDescription.contains("bad token"))
+
+        let withoutMessage = V2exAPIError.http(statusCode: 500, message: nil, rateLimit: nil, response: nil)
+        XCTAssertTrue(withoutMessage.localizedDescription.contains("500"))
+        XCTAssertFalse(withoutMessage.localizedDescription.contains(" - "))
+
+        let apiFailure = V2exAPIError.apiFailure(message: "nope", response: nil)
+        XCTAssertTrue(apiFailure.localizedDescription.contains("nope"))
+
+        let network = V2exAPIError.network(underlying: URLError(.timedOut))
+        XCTAssertTrue(network.localizedDescription.contains("network"))
+
+        // 非 http 错误时 statusCode / rateLimit 应为 nil
+        XCTAssertNil(network.statusCode)
+        XCTAssertNil(network.rateLimit)
+        XCTAssertFalse(network.isRateLimited)
+        XCTAssertFalse(network.isUnauthorized)
+    }
+
+    func testRateLimitDescription() {
+        let rateLimit = V2exAPIError.RateLimit(limit: 120, remaining: 0, reset: nil)
+        XCTAssertEqual(rateLimit.limit, 120)
+        XCTAssertEqual(rateLimit.remaining, 0)
+        XCTAssertTrue(rateLimit.description.contains("120"))
+
+        // 没有任何头时构造应失败
+        XCTAssertNil(V2exAPIError.RateLimit(headers: nil))
+        XCTAssertNil(V2exAPIError.RateLimit(headers: [:]))
+    }
+
+    // MARK: - V2 需鉴权接口
+
+    func testNotifications() async throws {
+        api.accessToken = "T"
+        MockURLProtocol.succeed(#"""
+        {"success":true,"message":"","result":[{"id":1,"member_id":2,"text":"hi","payload":"hi"}]}
+        """#)
+
+        let response = try await api.notifications(page: 2)
+        XCTAssertTrue(response.success)
+        let list = response.result ?? nil
+        XCTAssertEqual(list?.first?.id, 1)
+        XCTAssertEqual(list?.first?.memberID, 2)
+
+        let url = try XCTUnwrap(MockURLProtocol.recordedRequests.first?.url)
+        XCTAssertEqual(url.path, "/api/v2/notifications")
+        let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        XCTAssertEqual(items.first { $0.name == "p" }?.value, "2")
+    }
+
+    func testTokenInfo() async throws {
+        api.accessToken = "T"
+        MockURLProtocol.succeed(#"{"success":true,"message":"","result":{"token":"abc","scope":"everything","good_for_days":30}}"#)
+
+        let response = try await api.token()
+        XCTAssertEqual(response.result?.token, "abc")
+        XCTAssertEqual(response.result?.goodForDays, 30)
+        XCTAssertEqual(MockURLProtocol.recordedRequests.first?.url?.path, "/api/v2/token")
+    }
+
+    func testTopicDetail() async throws {
+        api.accessToken = "T"
+        MockURLProtocol.succeed(#"{"success":true,"message":"","result":{"id":42,"title":"T"}}"#)
+
+        let response = try await api.topic(topicId: 42)
+        let topic = response.result ?? nil
+        XCTAssertEqual(topic?.id, 42)
+        XCTAssertEqual(MockURLProtocol.recordedRequests.first?.url?.path, "/api/v2/topics/42")
+    }
+
+    func testTopicDetailNullResult() async throws {
+        api.accessToken = "T"
+        MockURLProtocol.succeed(#"{"success":true,"message":"","result":null}"#)
+
+        let response = try await api.topic(topicId: 999)
+        XCTAssertTrue(response.success)
+        XCTAssertNil(response.result ?? nil)
+    }
+
+    func testGetNode() async throws {
+        api.accessToken = "T"
+        MockURLProtocol.succeed(#"{"success":true,"message":"","result":{"id":1,"name":"swift"}}"#)
+
+        let response = try await api.getNode(nodeName: "swift")
+        let node = response.result ?? nil
+        XCTAssertEqual(node?.name, "swift")
+    }
+
+    func testRepliesV2Pagination() async throws {
+        api.accessToken = "T"
+        MockURLProtocol.succeed(#"{"success":true,"message":"","result":[]}"#)
+
+        _ = try await api.replies(topicId: 7, page: 3)
+
+        let url = try XCTUnwrap(MockURLProtocol.recordedRequests.first?.url)
+        XCTAssertEqual(url.path, "/api/v2/topics/7/replies")
+        let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        XCTAssertEqual(items.first { $0.name == "p" }?.value, "3")
+    }
+
+    // MARK: - 边缘分支
+
+    func testAPIFailureMessageFromBodyWhenNoMessageField() async throws {
+        // 非 2xx 且响应体只有 error 字段时，也应提取出信息
+        MockURLProtocol.fail(400, #"{"error":"bad request body"}"#)
+
+        do {
+            _ = try await api.hotTopics()
+            XCTFail("should throw")
+        } catch let error as V2exAPIError {
+            guard case let .http(_, message, _, _) = error else {
+                return XCTFail("expected http error")
+            }
+            XCTAssertEqual(message, "bad request body")
+        }
+    }
+
+    func testStatusCodesAreAccepted() async throws {
+        // 204 也属于成功范围，但空 body 会解码失败，这里验证它不被当成 HTTP 错误
+        MockURLProtocol.handler = { _ in (204, [:], Data()) }
+
+        do {
+            _ = try await api.member()
+            XCTFail("should throw")
+        } catch let error as V2exAPIError {
+            guard case .decoding = error else {
+                return XCTFail("204 空体应落到 decoding 而不是 http，实际: \(error)")
+            }
+        }
+    }
+
+    func testRateLimitWaitIsCappedAt60Seconds() async throws {
+        // reset 在未来 1 秒：验证会等待但不会超过上限
+        api.maxRetries = 1
+        api.retryDelay = 0
+
+        let soon = Int(Date().timeIntervalSince1970) + 1
+        var calls = 0
+        MockURLProtocol.handler = { _ in
+            calls += 1
+            if calls == 1 {
+                return (429, ["X-Rate-Limit-Reset": "\(soon)"], Data())
+            }
+            return (200, [:], Data("[]".utf8))
+        }
+
+        let start = Date()
+        _ = try await api.hotTopics()
+        let elapsed = Date().timeIntervalSince(start)
+
+        XCTAssertEqual(calls, 2)
+        XCTAssertLessThan(elapsed, 60, "不应超过 60 秒上限")
+        XCTAssertGreaterThan(elapsed, 0.5, "应确实等待到接近 reset 时间")
+    }
+
     // MARK: - 值语义
 
     func testResponseIsEquatableWhenResultIs() {

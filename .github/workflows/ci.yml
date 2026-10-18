@@ -61,7 +61,7 @@ jobs:
         run: swift build
 
       - name: Test
-        run: swift test
+        run: SKIP_NETWORK_TESTS=1 swift test
 
   # 宿主平台：完整测试
   test-macos:
@@ -76,8 +76,20 @@ jobs:
       - name: Build
         run: swift build
 
-      - name: Test
-        run: swift test --parallel
+      - name: Test (offline)
+        run: SKIP_NETWORK_TESTS=1 swift test --parallel
+
+  # 真实网络冒烟测试：只跑无需 Token 的 V1 公开接口。
+  # 独立 job 且允许失败不影响主流程（V2EX 可能临时不可达或限流）。
+  test-live:
+    name: Live API (no token)
+    runs-on: macos-14
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test against real V1 API
+        run: swift test --filter V2exAPILiveTests
 
   # Swift 6 严格并发，防止并发相关的 API 设计退化
   strict-concurrency:
