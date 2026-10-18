@@ -154,17 +154,21 @@ final class V2exAPILiveTests: XCTestCase {
     // MARK: - 限流信息
 
     func testRateLimitHeadersAreParsed() async throws {
-        // 连续请求几次，响应头里应带限流信息（若服务端返回）
-        // 这里只验证「如果存在则解析正确」这条路径
-        let session = URLSession.shared
-        let url = URL(string: "https://v2ex.com/api/topics/hot.json")!
-        let (_, response) = try await session.data(from: url)
-        let rateLimit = V2exAPIError.RateLimit(headers: (response as? HTTPURLResponse)?.allHeaderFields)
+        // 直接取一次响应头，验证 X-Rate-Limit-* 的解析。
+        // 使用 completion handler 形式，Linux 上的 Foundation 没有 async 版本。
+        let url = try XCTUnwrap(URL(string: "https://v2ex.com/api/topics/hot.json"))
 
-        if let rateLimit {
-            // 有返回值时，至少 limit 或 remaining 应可用
-            XCTAssertTrue(rateLimit.limit != nil || rateLimit.remaining != nil,
-                          "限流信息应至少包含 limit 或 remaining")
+        let headerFields: [AnyHashable: Any]? = await withCheckedContinuation { continuation in
+            URLSession.shared.dataTask(with: url) { _, response, _ in
+                continuation.resume(returning: (response as? HTTPURLResponse)?.allHeaderFields)
+            }.resume()
         }
+
+        guard let rateLimit = V2exAPIError.RateLimit(headers: headerFields) else {
+            // 该接口可能被 CDN 缓存而不再返回限流头，属正常情况
+            return
+        }
+        XCTAssertTrue(rateLimit.limit != nil || rateLimit.remaining != nil,
+                      "限流信息应至少包含 limit 或 remaining")
     }
 }
