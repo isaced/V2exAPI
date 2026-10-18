@@ -1,7 +1,6 @@
 # V2exAPI
 [![Swift](https://img.shields.io/badge/swift-F54A2A?style=for-the-badge&logo=swift&logoColor=white)](https://github.com/isaced/V2exAPI)
 [![CocoaPods](https://img.shields.io/cocoapods/v/V2exAPI.svg?style=for-the-badge)](https://cocoapods.org/pods/V2exAPI)
-[![Carthage](https://img.shields.io/badge/-Carthage-5C5543?style=for-the-badge)](https://github.com/Carthage/Carthage)
 [![iOS](https://img.shields.io/badge/iOS-000000?style=for-the-badge&logo=ios&logoColor=white)](https://github.com/isaced/V2exAPI)
 [![macOS](https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=macos&logoColor=F0F0F0)](https://github.com/isaced/V2exAPI)
 
@@ -17,6 +16,7 @@ A [V2ex](https://v2ex.com/) API wrapper for iOS/macOS, built with Swift.
 - [x] Swift async/await Support
 - [x] V2ex API V1 100%
 - [x] V2ex API V2 100%
+- [x] Structured errors via `V2exAPIError` (HTTP status / rate limit / decoding)
 - [x] Zero dependency
 
 ## API Support
@@ -52,21 +52,21 @@ A [V2ex](https://v2ex.com/) API wrapper for iOS/macOS, built with Swift.
 via [Swift Package Manager](https://swift.org/package-manager/) Install to your project，Add in `Package.swift`：
 
 ```swift
-.package(name: "V2exAPI", url: "git@github.com:isaced/V2exAPI.git", .upToNextMinor(from: "1.0.0")),
+.package(url: "https://github.com/isaced/V2exAPI.git", from: "1.1.0"),
 ```
 
 In Xcode：
 - File > Swift Packages > Add Package Dependency
 - Add https://github.com/isaced/V2exAPI.git
-- Select "Up to Next Major" with "1.0.0"
+- Select "Up to Next Major" with "1.1.0"
 
 ### CocoaPods
 
 ```ruby
-pod 'V2exAPI', '~> 1.0'
+pod 'V2exAPI', '~> 1.1'
 ```
 
-## Useage
+## Usage
 
 ```swift
 import V2exAPI
@@ -80,11 +80,38 @@ let nodes = try await v2ex.nodesList()
 // Get latest topics
 let latest = try await v2ex.latestTopics()
 
-// Get the topics under the specified node
+// Get the topics under the specified node (V1, returns `[V2Topic]`)
+let topicsV1 = try await v2ex.nodeTopics(nodeName: "swift")
+
+// Get the topics under the specified node (V2, returns `V2Response<[V2Topic]?>`)
 let topics = try await v2ex.topics(nodeName: "swift", page: 1)
 
 // Get replies under the specified topic
 let replies = try await v2ex.replies(topicId: 870607, page: 1)
+```
+
+### Error handling
+
+Every call throws `V2exAPIError` on failure, so you can branch on the status code
+or on semantic helpers:
+
+```swift
+do {
+    let topics = try await v2ex.topics(nodeName: "swift", page: 1)
+    guard topics.success else {
+        // Business failure, see topics.message
+        return
+    }
+    print(topics.result ?? [])
+} catch let error as V2exAPIError {
+    if error.isRateLimited {
+        print("Rate limited, remaining: \(error.rateLimit?.remaining ?? 0)")
+    } else if error.isUnauthorized {
+        // Token expired or invalid, ask the user to sign in again
+    } else {
+        print(error.localizedDescription)
+    }
+}
 ```
 
 ## API Reference
@@ -116,4 +143,4 @@ For API requests that can be cached by the CDN, the Rate Limit quota will only b
 
 ## License
 
-V2exAPI Kingfisher is released under the MIT license. See [LICENSE](/LICENSE) for details.
+V2exAPI is released under the MIT license. See [LICENSE](/LICENSE) for details.

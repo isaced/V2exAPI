@@ -1,7 +1,6 @@
 # V2exAPI
 [![Swift](https://img.shields.io/badge/swift-F54A2A?style=for-the-badge&logo=swift&logoColor=white)](https://github.com/isaced/V2exAPI)
 [![CocoaPods](https://img.shields.io/cocoapods/v/V2exAPI.svg?style=for-the-badge)](https://cocoapods.org/pods/V2exAPI)
-[![Carthage](https://img.shields.io/badge/-Carthage-5C5543?style=for-the-badge)](https://github.com/Carthage/Carthage)
 [![iOS](https://img.shields.io/badge/iOS-000000?style=for-the-badge&logo=ios&logoColor=white)](https://github.com/isaced/V2exAPI)
 [![macOS](https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=macos&logoColor=F0F0F0)](https://github.com/isaced/V2exAPI)
 
@@ -15,6 +14,7 @@
 - [x] Swift async/await 异步 API
 - [x] V2ex API V1 支持度 100%
 - [x] V2ex API V2 支持度 100%
+- [x] 结构化错误 `V2exAPIError`（HTTP 状态码 / 限流信息 / 解码失败）
 - [x] Zero dependency 零三方依赖
 
 ## API 支持范围
@@ -50,19 +50,19 @@
 通过 [Swift Package Manager](https://swift.org/package-manager/) 安装 V2exAPI 到你的项目，在 `Package.swift` 中添加：
 
 ```swift
-.package(name: "V2exAPI", url: "git@github.com:isaced/V2exAPI.git", .upToNextMinor(from: "1.0.0")),
+.package(url: "https://github.com/isaced/V2exAPI.git", from: "1.1.0"),
 ```
 
 在 Xcode 中：
 - 菜单 File > Swift Packages > Add Package Dependency
 - 搜索 https://github.com/isaced/V2exAPI.git
-- 选择 "Up to Next Major" 版本 "1.0.0"
+- 选择 "Up to Next Major" 版本 "1.1.0"
 
 
 ### CocoaPods
 
 ```ruby
-pod 'V2exAPI', '~> 1.0'
+pod 'V2exAPI', '~> 1.1'
 ```
 
 ## 使用
@@ -79,11 +79,45 @@ let nodes = try await v2ex.nodesList()
 // 获取最新主题
 let latest = try await v2ex.latestTopics()
 
-// 获取指定节点下的主题列表
+// 获取指定节点下的主题列表（V1，返回 `[V2Topic]`）
+let topicsV1 = try await v2ex.nodeTopics(nodeName: "swift")
+
+// 获取指定节点下的主题（V2，返回 `V2Response<[V2Topic]?>`）
 let topics = try await v2ex.topics(nodeName: "swift", page: 1)
 
 // 获取指定主题下的回复
 let replies = try await v2ex.replies(topicId: 870607, page: 1)
+```
+
+### 错误处理
+
+所有接口在失败时抛出 `V2exAPIError`，可以直接按状态码或语义判断：
+
+```swift
+do {
+    let topics = try await v2ex.topics(nodeName: "swift", page: 1)
+    guard topics.success else {
+        // 业务失败，topics.message 中有服务端说明
+        return
+    }
+    print(topics.result ?? [])
+} catch let error as V2exAPIError {
+    switch error {
+    case .http(let statusCode, _, let rateLimit, _) where statusCode == 429:
+        print("触发限流，剩余 \(rateLimit?.remaining ?? 0) 次")
+    case let .network(underlying):
+        print("网络错误：\(underlying)")
+    case let .decoding(underlying, _):
+        print("解析失败：\(underlying)")
+    default:
+        print(error.localizedDescription)
+    }
+}
+
+// 也可以使用便捷属性
+if let error = error as? V2exAPIError, error.isUnauthorized {
+    // Token 失效，引导用户重新登录
+}
 ```
 
 ## API 参考
