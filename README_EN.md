@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/hero-en.svg" alt="V2exAPI — a Swift wrapper for the V2ex API" width="100%">
+</p>
+
 # V2exAPI
 [![Swift](https://img.shields.io/badge/swift-F54A2A?style=for-the-badge&logo=swift&logoColor=white)](https://github.com/isaced/V2exAPI)
 [![Swift Package Index](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fisaced%2FV2exAPI%2Fbadge%3Ftype%3Dswift-versions&style=for-the-badge)](https://swiftpackageindex.com/isaced/V2exAPI)
